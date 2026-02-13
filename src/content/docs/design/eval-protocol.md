@@ -11,17 +11,17 @@ StarVLA standardizes the inference pipeline for real-robot or simulation evaluat
 
 ## Architecture
 
-The StarVLA framework uses a client-server architecture to separate the Evaluation Environment (Client) from the Policy Server (Model).
+The StarVLA framework uses a client-server architecture to separate the Evaluation/Deployment Environment (Client) from the Policy Server (Model). The Policy Server (Model) handles model inference, while the client side performs unnormalization, delta-to-absolute conversion, action ensembling, etc.
 
 ![Policy Server Architecture](../../../assets/starVLA_PolicyServer.png)
 
 ### Component Description
 
-| Component | Color Code | Description |
-|-----------|------------|-------------|
-| Sim / Real Controller | Grey | External to StarVLA: Contains the core loop of the evaluation environment or robot controller, handling observation collection (`get_obs()`) and action execution (`apply_action()`). |
-| PolicyClient.py & WebSocket & PolicyServer | Blue | Standard Communication Flow: Client-side wrapper responsible for data transmission (tunneling) and interfacing the environment with the server. |
-| Framework.py | Orange | Model Infer Core: Contains the user-defined model inference function (`Framework.predict_action`), which is the main logic for generating actions. |
+| Component | Description |
+|-----------|-------------|
+| Sim / Real Controller | External to StarVLA: Contains the core loop of the evaluation environment or robot controller, handling observation collection (`get_obs()`) and action execution (`apply_action()`). |
+| PolicyClient.py & WebSocket & PolicyServer | Standard Communication Flow: Client-side wrapper responsible for data transmission (tunneling) and interfacing the environment with the server. |
+| Framework.py | Model Infer Core: Contains the user-defined model inference function (`Framework.predict_action`), which is the main logic for generating actions. |
 
 ---
 
@@ -50,6 +50,24 @@ while True:
     apply_action(action)
 ```
 
+For the Model Server, simply launch it with:
+
+```bash
+#!/bin/bash
+export PYTHONPATH=$(pwd):${PYTHONPATH} # let LIBERO find the websocket tools from main repo
+export star_vla_python=/root/miniconda3/envs/starvla/bin/python
+your_ckpt=results/Checkpoints/xxx.pt
+gpu_id=0
+port=5694
+################# star Policy Server ######################
+
+# export DEBUG=true
+CUDA_VISIBLE_DEVICES=$gpu_id ${star_vla_python} deployment/model_server/server_policy.py \
+    --ckpt_path ${your_ckpt} \
+    --port ${port} \
+    --use_bf16
+```
+
 ### Notes
 
 - Ensure every field in `example` is JSON-serializable or convertible (lists, floats, ints, strings); convert custom objects explicitly.
@@ -62,7 +80,7 @@ while True:
 
 ![Policy Interface](../../../assets/starVLA_PolicyInterface.png)
 
-The `*2model_interface.py` interface is designed to wrap and abstract any variations originating from the simulation or real-world environment. It also supports user-defined controllers, such as converting delta actions to absolute joint positions.
+The `*2model_interface.py` interface is designed to wrap and abstract any variations originating from the simulation or real-world environment. It also supports user-defined controllers, such as converting delta actions to absolute joint positions. You can refer to the implementations for different benchmarks in `examples` to build your own deployment.
 
 ---
 

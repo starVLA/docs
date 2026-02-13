@@ -106,6 +106,32 @@ your_dataset_name/
             └── episode_000000.mp4
 ```
 
+### Modality JSON File
+
+Create a `modality.json` file in your training directory to define the mapping between LeRobot keys and StarVLA keys:
+
+```json
+{
+    "state": {
+        "arm_joint": {"start": 0, "end": 6},
+        "gripper_joint": {"start": 6, "end": 7}
+    },
+    "action": {
+        "arm_joint": {"start": 0, "end": 6},
+        "gripper_joint": {"start": 6, "end": 7}
+    },
+    "video": {
+        "camera_1": {"original_key": "observation.images.camera_1"},
+        "camera_2": {"original_key": "observation.images.camera_2"}
+    },
+    "annotation": {
+        "human.action.task_description": {"original_key": "language_instruction"}
+    }
+}
+```
+
+StarVLA provides LeRobot formats for all currently supported datasets, or you can use LeRobot datasets provided by others. See the corresponding sections in the documentation for details.
+
 ## Step 2: Create Robot Type Config
 
 The Robot Type Config defines how StarVLA reads and processes your data. Create a new config class in `starVLA/dataloader/gr00t_lerobot/data_config.py`.
@@ -120,22 +146,12 @@ class MyRobotDataConfig:
         "video.camera_2",      # Maps to observation.images.camera_2
     ]
     state_keys = [
-        "state.joint_1",
-        "state.joint_2",
-        "state.joint_3",
-        "state.joint_4",
-        "state.joint_5",
-        "state.joint_6",
-        "state.gripper",
+        "state.arm_joint",
+        "state.gripper_joint",
     ]
     action_keys = [
-        "action.joint_1",
-        "action.joint_2",
-        "action.joint_3",
-        "action.joint_4",
-        "action.joint_5",
-        "action.joint_6",
-        "action.gripper",
+        "action.arm_joint",
+        "action.gripper_joint",
     ]
     language_keys = ["annotation.human.action.task_description"]
 
@@ -191,6 +207,8 @@ class MyRobotDataConfig:
         return ComposedModalityTransform(transforms=transforms)
 ```
 
+Note the mapping relationship implemented by Modality in the DataConfig. For example, if a dataset contains state and action with all degrees of freedom including arm, gripper, body, and wheel, Modality can slice out the meaning of each index range (via the `start` and `end` keys), and then reassemble and organize them in the DataConfig.
+
 ### Register the Config
 
 Add your config to the `ROBOT_TYPE_CONFIG_MAP` at the bottom of `data_config.py`:
@@ -199,40 +217,6 @@ Add your config to the `ROBOT_TYPE_CONFIG_MAP` at the bottom of `data_config.py`
 ROBOT_TYPE_CONFIG_MAP = {
     # ... existing configs ...
     "my_robot": MyRobotDataConfig(),
-}
-```
-
-### Modality JSON File
-
-Create a `modality.json` file in your training directory to define the mapping between LeRobot keys and StarVLA keys:
-
-```json
-{
-    "state": {
-        "joint_1": {"start": 0, "end": 1},
-        "joint_2": {"start": 1, "end": 2},
-        "joint_3": {"start": 2, "end": 3},
-        "joint_4": {"start": 3, "end": 4},
-        "joint_5": {"start": 4, "end": 5},
-        "joint_6": {"start": 5, "end": 6},
-        "gripper": {"start": 6, "end": 7}
-    },
-    "action": {
-        "joint_1": {"start": 0, "end": 1},
-        "joint_2": {"start": 1, "end": 2},
-        "joint_3": {"start": 2, "end": 3},
-        "joint_4": {"start": 3, "end": 4},
-        "joint_5": {"start": 4, "end": 5},
-        "joint_6": {"start": 5, "end": 6},
-        "gripper": {"start": 6, "end": 7}
-    },
-    "video": {
-        "camera_1": {"original_key": "observation.images.camera_1"},
-        "camera_2": {"original_key": "observation.images.camera_2"}
-    },
-    "annotation": {
-        "human.action.task_description": {"original_key": "language_instruction"}
-    }
 }
 ```
 
@@ -247,6 +231,10 @@ Available normalization modes for `StateActionTransform`:
 | `binary` | Map to {-1, 1} for binary actions (e.g., gripper open/close) |
 | `rotation_6d` | Convert rotation to 6D representation |
 | `axis_angle` | Convert rotation to axis-angle representation |
+
+:::tip
+In a common StarVLA setting, we use absolute Joint Position as the representation for State or Action. In this case, it is generally recommended to use `min_max` for Arm and `binary` for Gripper.
+:::
 
 ## Step 3: Create Data Mix
 
@@ -305,49 +293,92 @@ wandb_entity: your_wandb_entity
 wandb_project: my_robot_project
 is_debug: false
 
-# Framework configuration
 framework:
-  name: QwenOFT  # Options: QwenOFT, QwenGR00T, QwenFast, QwenPI
+  name: QwenOFT
   qwenvl:
-    base_vlm: ./playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
+    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
     attn_implementation: flash_attention_2
     vl_hidden_dim: 2048
-  action_model:
-    action_model_type: MLP  # For QwenOFT
-    action_dim: 7           # Your action dimension
-    state_dim: 7            # Your state dimension
-    action_horizon: 8       # Number of future steps to predict
+  dino:
+    dino_backbone: dinov2_vits14
 
-# Dataset configuration
+  action_model:
+    action_model_type: DiT-B
+    hidden_size: 1024     # Corresponds to DiT's final projection, used for ActionDecoder
+    add_pos_embed: True
+    max_seq_len: 1024
+    action_dim: 14
+    state_dim: 14
+    future_action_window_size: 15
+    action_horizon: 16
+    past_action_window_size: 0
+    repeated_diffusion_steps: 8
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_timestep_buckets: 1000
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 32
+    diffusion_model_cfg:    # DiT Transformer parameters
+      cross_attention_dim: 2048 # VLM dim
+      dropout: 0.2
+      final_dropout: true
+      interleave_self_attention: true
+      norm_type: "ada_norm"
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+
 datasets:
+  vlm_data:
+    dataset_py: vlm_datasets
+    dataformat: llava_json
+    dataset_use: asv2_conversation_en,asv2_detailed_description_en,asv2_region_captioning_en,coco_internvl_longcap_en,coco_karpathy_train_567_en,coco_negative_gpt4o_en,coco_poetry_zh,coco_rem_en_zh,cocorem_exist_yorn_en,cocotextv2_en,cocotextv2_gpt4o_en,okvqa_en,refcoco_grounding_aug_en,refcoco_grounding_en,tallyqa_coco_en,toloka_grounding_aug_en,vqav2_en,vsr_en
+    eval_dataset: aokvqa_cauldron_llava_format
+    data_flatten: false
+    base_interval: 2
+    max_pixels: 50176
+    min_pixels: 784
+    model_max_length: 2048
+    model_type: qwen2.5vl
+    per_device_batch_size: 4
+
   vla_data:
     dataset_py: lerobot_datasets
     data_root_dir: playground/Datasets/MY_DATA_ROOT
     data_mix: my_dataset           # Your registered mixture name
-    action_type: delta_qpos        # Options: abs_qpos, delta_qpos, delta_ee
+    action_type: abs_qpos
+    default_image_resolution: [3, 224, 224]
     per_device_batch_size: 16
-    obs: ["image_0"]               # Which images to use
+    load_all_data_for_training: true
+    obs: ["image_0"]
+    image_size: [224,224]
+    video_backend: torchvision_av
 
-# Trainer configuration
 trainer:
+  epochs: 100
   max_train_steps: 100000
   num_warmup_steps: 5000
-  save_interval: 10000
+  save_interval: 5000
   eval_interval: 100
-  logging_frequency: 100
-
   learning_rate:
-    base: 2.5e-05
+    base: 1e-05
     qwen_vl_interface: 1.0e-05
     action_model: 1.0e-04
-
   lr_scheduler_type: cosine_with_min_lr
   scheduler_specific_kwargs:
-    min_lr: 1.0e-06
-
-  freeze_modules: ''  # Comma-separated list of modules to freeze
+    min_lr: 5.0e-07
+  freeze_modules: ''
+  loss_scale:
+    vla: 1.0
+    vlm: 0.1
+  repeated_diffusion_steps: 4
+  max_grad_norm: 1.0
+  warmup_ratio: 0.1
+  weight_decay: 0.0
+  logging_frequency: 10
+  gradient_clipping: 1.0
   gradient_accumulation_steps: 1
-  enable_gradient_checkpointing: true
 
   optimizer:
     name: AdamW
@@ -356,8 +387,6 @@ trainer:
     weight_decay: 1.0e-08
 ```
 
-### Framework Options
-
 | Framework | Action Head | Best For |
 |-----------|-------------|----------|
 | `QwenOFT` | MLP | Fast inference, simple tasks |
@@ -365,13 +394,7 @@ trainer:
 | `QwenFast` | Discrete tokens | Token-based action prediction |
 | `QwenPI` | Diffusion | Multimodal action distributions |
 
-### Action Types
-
-| Type | Description |
-|------|-------------|
-| `abs_qpos` | Absolute joint positions |
-| `delta_qpos` | Delta joint positions |
-| `delta_ee` | Delta end-effector pose |
+You can also choose community-supported models, which share the BaseFramework and can be adapted simply by modifying the config.
 
 ## Step 5: Run Training
 
@@ -381,9 +404,10 @@ Create a training script (e.g., `examples/MyRobot/train_files/run_train.sh`):
 #!/bin/bash
 
 # Configuration
+config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
+# The following demonstrates how to override config values
 Framework_name=QwenOFT
 base_vlm=playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
-config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
 data_root=playground/Datasets/MY_DATA_ROOT
 data_mix=my_dataset
 run_root_dir=./results/Checkpoints
@@ -400,11 +424,12 @@ accelerate launch \
   --num_processes 8 \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
+  # The following demonstrates how to override config values
   --framework.name ${Framework_name} \
   --framework.qwenvl.base_vlm ${base_vlm} \
   --datasets.vla_data.data_root_dir ${data_root} \
   --datasets.vla_data.data_mix ${data_mix} \
-  --datasets.vla_data.per_device_batch_size 16 \
+  --datasets.vla_data.per_device_batch_size 4 \
   --trainer.max_train_steps 100000 \
   --trainer.save_interval 10000 \
   --run_root_dir ${run_root_dir} \

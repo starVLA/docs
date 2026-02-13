@@ -106,6 +106,32 @@ your_dataset_name/
             └── episode_000000.mp4
 ```
 
+### Modality JSON 文件
+
+在训练目录下创建 `modality.json` 文件，定义 LeRobot 键与 StarVLA 键之间的映射：
+
+```json
+{
+    "state": {
+        "arm_joint": {"start": 0, "end": 6},
+        "gripper_joint": {"start": 6, "end": 7}
+    },
+    "action": {
+        "arm_joint": {"start": 0, "end": 6},
+        "gripper_joint": {"start": 6, "end": 7}
+    },
+    "video": {
+        "camera_1": {"original_key": "observation.images.camera_1"},
+        "camera_2": {"original_key": "observation.images.camera_2"}
+    },
+    "annotation": {
+        "human.action.task_description": {"original_key": "language_instruction"}
+    }
+}
+```
+
+StarVLA 提供了目前已经支持的数据集的全部 LeRobot 格式，或者使用了其他人提供的 LeRobot 数据集，具体可以到文档的对应章节查看。
+
 ## 步骤二：创建 Robot Type Config
 
 Robot Type Config 定义了 StarVLA 如何读取和处理你的数据。在 `starVLA/dataloader/gr00t_lerobot/data_config.py` 中创建新的配置类。
@@ -120,22 +146,12 @@ class MyRobotDataConfig:
         "video.camera_2",      # 映射到 observation.images.camera_2
     ]
     state_keys = [
-        "state.joint_1",
-        "state.joint_2",
-        "state.joint_3",
-        "state.joint_4",
-        "state.joint_5",
-        "state.joint_6",
-        "state.gripper",
+        "state.arm_joint",
+        "state.gripper_joint",
     ]
     action_keys = [
-        "action.joint_1",
-        "action.joint_2",
-        "action.joint_3",
-        "action.joint_4",
-        "action.joint_5",
-        "action.joint_6",
-        "action.gripper",
+        "action.arm_joint",
+        "action.gripper_joint",
     ]
     language_keys = ["annotation.human.action.task_description"]
 
@@ -191,6 +207,8 @@ class MyRobotDataConfig:
         return ComposedModalityTransform(transforms=transforms)
 ```
 
+从 DataConfig 中可以注意到 Modality 实现的映射关系。例如某一数据集中包含一个含有 arm, gripper, body, wheel 全部自由度的 state 和 action，Modality 可以从其中切出每段 index 对应的含义（通过 start 以及 end 这两个 key），并且在 DataConfig 中将它们重新拼接组织。
+
 ### 注册配置
 
 将你的配置添加到 `data_config.py` 底部的 `ROBOT_TYPE_CONFIG_MAP` 中：
@@ -199,40 +217,6 @@ class MyRobotDataConfig:
 ROBOT_TYPE_CONFIG_MAP = {
     # ... 现有配置 ...
     "my_robot": MyRobotDataConfig(),
-}
-```
-
-### Modality JSON 文件
-
-在训练目录下创建 `modality.json` 文件，定义 LeRobot 键与 StarVLA 键之间的映射：
-
-```json
-{
-    "state": {
-        "joint_1": {"start": 0, "end": 1},
-        "joint_2": {"start": 1, "end": 2},
-        "joint_3": {"start": 2, "end": 3},
-        "joint_4": {"start": 3, "end": 4},
-        "joint_5": {"start": 4, "end": 5},
-        "joint_6": {"start": 5, "end": 6},
-        "gripper": {"start": 6, "end": 7}
-    },
-    "action": {
-        "joint_1": {"start": 0, "end": 1},
-        "joint_2": {"start": 1, "end": 2},
-        "joint_3": {"start": 2, "end": 3},
-        "joint_4": {"start": 3, "end": 4},
-        "joint_5": {"start": 4, "end": 5},
-        "joint_6": {"start": 5, "end": 6},
-        "gripper": {"start": 6, "end": 7}
-    },
-    "video": {
-        "camera_1": {"original_key": "observation.images.camera_1"},
-        "camera_2": {"original_key": "observation.images.camera_2"}
-    },
-    "annotation": {
-        "human.action.task_description": {"original_key": "language_instruction"}
-    }
 }
 ```
 
@@ -247,6 +231,10 @@ ROBOT_TYPE_CONFIG_MAP = {
 | `binary` | 映射到 {-1, 1}，用于二值动作（如夹爪开/关） |
 | `rotation_6d` | 将旋转转换为6D表示 |
 | `axis_angle` | 将旋转转换为轴角表示 |
+
+:::tip
+在 StarVLA 比较常见的 Setting 中，我们使用绝对 Joint Position 作为 State 或者 Action 的表征，此时一般来说推荐对于 Arm 使用 `min_max` 并对 Gripper 使用 `binary`。
+:::
 
 ## 步骤三：创建 Data Mix
 
@@ -305,49 +293,92 @@ wandb_entity: your_wandb_entity
 wandb_project: my_robot_project
 is_debug: false
 
-# 框架配置
 framework:
-  name: QwenOFT  # 选项：QwenOFT, QwenGR00T, QwenFast, QwenPI
+  name: QwenOFT
   qwenvl:
-    base_vlm: ./playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
+    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
     attn_implementation: flash_attention_2
     vl_hidden_dim: 2048
-  action_model:
-    action_model_type: MLP  # QwenOFT 使用
-    action_dim: 7           # 你的动作维度
-    state_dim: 7            # 你的状态维度
-    action_horizon: 8       # 预测的未来步数
+  dino:
+    dino_backbone: dinov2_vits14
 
-# 数据集配置
+  action_model:
+    action_model_type: DiT-B
+    hidden_size: 1024     # 和 DiT 最后的 projection 对应，用于 ActionDecoder
+    add_pos_embed: True
+    max_seq_len: 1024
+    action_dim: 14
+    state_dim: 14
+    future_action_window_size: 15
+    action_horizon: 16
+    past_action_window_size: 0
+    repeated_diffusion_steps: 8
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_timestep_buckets: 1000
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 32
+    diffusion_model_cfg:    # DiT Transformers 的参数
+      cross_attention_dim: 2048 # VLM 的 dim
+      dropout: 0.2
+      final_dropout: true
+      interleave_self_attention: true
+      norm_type: "ada_norm"
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+
 datasets:
+  vlm_data:
+    dataset_py: vlm_datasets
+    dataformat: llava_json
+    dataset_use: asv2_conversation_en,asv2_detailed_description_en,asv2_region_captioning_en,coco_internvl_longcap_en,coco_karpathy_train_567_en,coco_negative_gpt4o_en,coco_poetry_zh,coco_rem_en_zh,cocorem_exist_yorn_en,cocotextv2_en,cocotextv2_gpt4o_en,okvqa_en,refcoco_grounding_aug_en,refcoco_grounding_en,tallyqa_coco_en,toloka_grounding_aug_en,vqav2_en,vsr_en
+    eval_dataset: aokvqa_cauldron_llava_format
+    data_flatten: false
+    base_interval: 2
+    max_pixels: 50176
+    min_pixels: 784
+    model_max_length: 2048
+    model_type: qwen2.5vl
+    per_device_batch_size: 4
+
   vla_data:
     dataset_py: lerobot_datasets
     data_root_dir: playground/Datasets/MY_DATA_ROOT
     data_mix: my_dataset           # 你注册的混合名称
-    action_type: delta_qpos        # 选项：abs_qpos, delta_qpos, delta_ee
+    action_type: abs_qpos
+    default_image_resolution: [3, 224, 224]
     per_device_batch_size: 16
-    obs: ["image_0"]               # 使用哪些图像
+    load_all_data_for_training: true
+    obs: ["image_0"]
+    image_size: [224,224]
+    video_backend: torchvision_av
 
-# 训练器配置
 trainer:
+  epochs: 100
   max_train_steps: 100000
   num_warmup_steps: 5000
-  save_interval: 10000
+  save_interval: 5000
   eval_interval: 100
-  logging_frequency: 100
-
   learning_rate:
-    base: 2.5e-05
+    base: 1e-05
     qwen_vl_interface: 1.0e-05
     action_model: 1.0e-04
-
   lr_scheduler_type: cosine_with_min_lr
   scheduler_specific_kwargs:
-    min_lr: 1.0e-06
-
-  freeze_modules: ''  # 要冻结的模块，逗号分隔
+    min_lr: 5.0e-07
+  freeze_modules: ''
+  loss_scale:
+    vla: 1.0
+    vlm: 0.1
+  repeated_diffusion_steps: 4
+  max_grad_norm: 1.0
+  warmup_ratio: 0.1
+  weight_decay: 0.0
+  logging_frequency: 10
+  gradient_clipping: 1.0
   gradient_accumulation_steps: 1
-  enable_gradient_checkpointing: true
 
   optimizer:
     name: AdamW
@@ -356,8 +387,6 @@ trainer:
     weight_decay: 1.0e-08
 ```
 
-### 框架选项
-
 | 框架 | 动作头 | 适用场景 |
 |------|--------|----------|
 | `QwenOFT` | MLP | 快速推理，简单任务 |
@@ -365,13 +394,7 @@ trainer:
 | `QwenFast` | 离散 token | 基于 token 的动作预测 |
 | `QwenPI` | 扩散模型 | 多模态动作分布 |
 
-### 动作类型
-
-| 类型 | 描述 |
-|------|------|
-| `abs_qpos` | 绝对关节位置 |
-| `delta_qpos` | 关节位置增量 |
-| `delta_ee` | 末端执行器位姿增量 |
+你也可以选择社区支持的其他模型，它们共享 BaseFramework，因此可以仅仅通过修改 Config 来适配
 
 ## 步骤五：运行训练
 
@@ -381,9 +404,10 @@ trainer:
 #!/bin/bash
 
 # 配置
+config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
+# 以下内容演示如何覆盖 Config
 Framework_name=QwenOFT
 base_vlm=playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
-config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
 data_root=playground/Datasets/MY_DATA_ROOT
 data_mix=my_dataset
 run_root_dir=./results/Checkpoints
@@ -400,11 +424,12 @@ accelerate launch \
   --num_processes 8 \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
+  # 以下内容用于演示如何覆盖 Config
   --framework.name ${Framework_name} \
   --framework.qwenvl.base_vlm ${base_vlm} \
   --datasets.vla_data.data_root_dir ${data_root} \
   --datasets.vla_data.data_mix ${data_mix} \
-  --datasets.vla_data.per_device_batch_size 16 \
+  --datasets.vla_data.per_device_batch_size 4 \
   --trainer.max_train_steps 100000 \
   --trainer.save_interval 10000 \
   --run_root_dir ${run_root_dir} \
