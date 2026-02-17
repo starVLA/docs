@@ -57,6 +57,7 @@ RoboTwin 2.0 dual-arm manipulation benchmark with 50 tasks. See [RoboTwin evalua
 
 | Model | Framework | Base VLM | Link |
 | --- | --- | --- | --- |
+| **Qwen3-VL-OFT-Robotwin2-All** | QwenOFT | Qwen3-VL-4B | [HF](https://huggingface.co/StarVLA/Qwen3-VL-OFT-Robotwin2-All) |
 | **Qwen3-VL-OFT-Robotwin2** | QwenOFT | Qwen3-VL-4B | [HF](https://huggingface.co/StarVLA/Qwen3-VL-OFT-Robotwin2) |
 
 ### BEHAVIOR-1K
