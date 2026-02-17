@@ -3,6 +3,8 @@ title: SimplerEnv 评测
 description: 复现 StarVLA 在 SimplerEnv 上的实验结果（环境配置、评测流程与训练说明）。
 ---
 
+**SimplerEnv** 是一个基于 ManiSkill 的仿真评测环境，使用 WidowX 机械臂执行桌面操作任务（如抓取、放置、开关抽屉等）。它被广泛用于评测在 Open X-Embodiment（OXE）数据集上训练的 VLA 模型。
+
 本文档提供在 SimplerEnv 上复现我们**实验结果**的操作指南。评测流程主要包含两部分：
 
 1. 配置 `simpler_env` 环境与依赖。

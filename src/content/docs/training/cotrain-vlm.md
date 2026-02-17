@@ -3,7 +3,9 @@ title: Co-Training with VLM Data
 description: Integrate VLM (Vision-Language Model) data to co-train the StarVLA framework.
 ---
 
-This guide outlines the process for integrating VLM (Vision-Language Model) data to co-train the StarVLA (Vision-Language-Action) framework, enhancing its general visual and language understanding.
+This guide outlines the process for integrating VLM (Vision-Language Model) data to co-train the StarVLA (Vision-Language-Action) framework.
+
+**Why co-train?** Training a VLA purely on robot manipulation data can degrade the VLM backbone's vision and language understanding ("catastrophic forgetting"). Mixing in VLM data (image QA, captioning, etc.) preserves the model's general understanding while learning robot control.
 
 ---
 

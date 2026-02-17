@@ -7,7 +7,7 @@ description: Run StarVLA framework with the BEHAVIOR-1K Benchmark.
 This document is under active development.
 :::
 
-This document provides instructions to run our framework with the [BEHAVIOR-1K Benchmark](https://github.com/StanfordVL/BEHAVIOR-1K). We follow the structure of [2025 BEHAVIOR Challenge](https://behavior.stanford.edu/challenge/index.html) so that you can train and evaluate on the 50 full-length household tasks.
+**BEHAVIOR-1K** is a household task simulation benchmark by Stanford, featuring 1000 everyday activities (cooking, cleaning, organizing, etc.). We follow the [2025 BEHAVIOR Challenge](https://behavior.stanford.edu/challenge/index.html) structure to train and evaluate on 50 full-length household tasks. It uses the R1Pro humanoid robot (dual arms + base + torso, 23-dimensional action space).
 
 The evaluation process consists of two main parts:
 
@@ -15,7 +15,11 @@ The evaluation process consists of two main parts:
 2. Running the evaluation by launching services in both `starVLA` and `behavior` environments.
 
 :::note[GPU Requirements]
-To run evaluation on BEHAVIOR benchmark, you should **not** use GPUs without RT Cores (A100, H100). Otherwise you may encounter problems of Segmentation fault or low resolution. See [this issue](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1872#issuecomment-3455002820) and [this discussion](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1875#issuecomment-3444246495) for more details.
+BEHAVIOR's simulator (OmniGibson) requires **hardware ray tracing (RT Cores)** for rendering. The following GPUs **cannot be used**: A100, H100 (they lack RT Cores).
+
+**Recommended**: RTX 3090, RTX 4090, or other GeForce RTX / Quadro RTX series GPUs.
+
+See [this issue](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1872#issuecomment-3455002820) and [this discussion](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1875#issuecomment-3444246495) for more details.
 :::
 
 ---

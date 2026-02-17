@@ -5,20 +5,24 @@ description: What StarVLA is, what it supports today, and where to find core cap
 
 ## Vision
 
-StarVLA is a lego-like, modular codebase for developing Vision-Language Models (VLMs) and (under construction) World Models (WM) into Vision-Language-Action (VLA) models. Each component (model, data, trainer, config, evaluation) is designed for high cohesion and low coupling so you can prototype quickly and debug in isolation.
+StarVLA is a lego-like, modular codebase for developing **Vision-Language Models (VLMs)** into **Vision-Language-Action (VLA) models**.
+
+In short: VLMs understand images and text; VLAs additionally output robot actions. StarVLA handles this transformation end-to-end — from data preparation and model training to simulation evaluation — with components that are **independently debuggable and plug-and-play**.
 
 ## Key Features
 
 ### VLA Frameworks
 
-StarVLA officially provides the Qwen-based StarVLA Model Family, which includes:
+StarVLA officially provides the Qwen-VL-based StarVLA Model Family with 4 different action output strategies:
 
-- **Qwen-FAST**: Qwen2.5-VL-3B/Qwen3-VL-4B with fast tokenizer generating discrete action tokens (pi0-fast style).
-- **Qwen-OFT**: Qwen2.5/3-VL-3B/Qwen3-VL-4B with MLP action head for parallel continuous actions (OpenVLA-OFT/EO style).
-- **Qwen-PI**: Flow-Matching action expert with diffusion-based continuous actions (pi0 style).
-- **Qwen-GR00T**: Dual-system VLA with Qwen2.5-VL-3B/Qwen3-VL-4B for reasoning and FM for fast action prediction.
+| Framework | Action Output | Reference |
+|-----------|--------------|-----------|
+| **Qwen-FAST** | Encodes actions as discrete tokens predicted by the language model | pi0-FAST |
+| **Qwen-OFT** | MLP head after VLM output, directly regressing continuous action values | OpenVLA-OFT |
+| **Qwen-PI** | Flow-Matching (diffusion-based) method for generating continuous actions | pi0 |
+| **Qwen-GR00T** | Dual-system: VLM for high-level reasoning + DiT for fast action generation | GR00T-N1 |
 
-The modular repository also means that you only need to define your model structure in a Framework, and you can use the shared Trainer, Dataloader, and Evaluation/Deployment pipeline to seamlessly run on all supported benchmarks and real-robot deployments.
+**Modularity means**: you only need to define your model structure in a Framework, and you can reuse the shared Trainer, Dataloader, and evaluation/deployment pipeline — no need to rewrite training loops or evaluation code.
 
 ### Training Strategies
 

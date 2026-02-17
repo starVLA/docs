@@ -5,20 +5,24 @@ description: StarVLA 的定位、当前能力与关键资源入口。
 
 ## 愿景
 
-StarVLA 是一个“乐高式”的模块化代码库，用于把视觉-语言模型（VLM）以及（正在建设中的）世界模型（WM）发展为视觉-语言-动作模型（VLA）。模型、数据、训练、配置与评测组件遵循高内聚低耦合原则，支持快速原型与独立调试。
+StarVLA 是一个"乐高式"的模块化代码库，用于把**视觉-语言模型（VLM）** 发展为**视觉-语言-动作模型（VLA）**。
+
+简单来说：VLM 能理解图像和文字，VLA 在此基础上还能输出机器人动作。StarVLA 帮你完成这个转化过程——从数据准备、模型训练到仿真评测，各组件**独立可调试、即插即用**。
 
 ## 关键特性
 
 ### VLA 框架
 
-StarVLA 官方提供了基于 Qwen 的 StarVLA Model Family，这其中包括：
+StarVLA 官方提供了基于 Qwen-VL 的 StarVLA Model Family，包含 4 种不同的动作输出方式：
 
-- **Qwen-FAST**：Qwen2.5-VL-3B/Qwen3-VL-4B + 快速 tokenizer，生成离散动作 token（pi0-fast 风格）。
-- **Qwen-OFT**：Qwen2.5/3-VL-3B/Qwen3-VL-4B + MLP 动作头，并行回归连续动作（OpenVLA-OFT/EO 风格）。
-- **Qwen-PI**：Flow-Matching 动作专家，扩散式连续动作预测（pi0 风格）。
-- **Qwen-GR00T**：双系统架构，Qwen2.5-VL-3B/Qwen3-VL-4B 负责高层推理，FM 负责快速动作预测。
+| 框架 | 动作输出方式 | 参考论文 |
+|------|-------------|---------|
+| **Qwen-FAST** | 将动作编码为离散 token，由语言模型直接预测 | pi0-FAST |
+| **Qwen-OFT** | 在 VLM 输出后接一个 MLP 头，直接回归连续动作值 | OpenVLA-OFT |
+| **Qwen-PI** | 使用 Flow-Matching（扩散式）方法生成连续动作 | pi0 |
+| **Qwen-GR00T** | 双系统架构：VLM 做高层推理 + DiT 做快速动作生成 | GR00T-N1 |
 
-同时模块化仓库同样意味着，你只需要在 Framework 中定义你的模型结构，就可以同样使用通用的 Trainer, Dataloader 以及 Evaluation Deploy 管线，一键式在我们支持的 Benchmark 以及真机部署上使用。
+**模块化意味着**：你只需在 Framework 中定义自己的模型结构，就可以复用通用的 Trainer、Dataloader 和评测部署管线——无需重写训练循环或评测代码。
 
 ### 训练策略
 

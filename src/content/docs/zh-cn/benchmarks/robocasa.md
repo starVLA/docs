@@ -3,7 +3,9 @@ title: RoboCasa 评测
 description: 复现 StarVLA 在 RoboCasa GR1 Tabletop Tasks 上的实验结果。
 ---
 
-本文档提供在 [RoboCasa GR1 Tabletop Tasks](https://github.com/robocasa/robocasa-gr1-tabletop-tasks) 上复现我们**实验结果**的操作指南。
+**RoboCasa** 是一个大规模家庭环境仿真基准。这里我们使用的是 [GR1 Tabletop Tasks](https://github.com/robocasa/robocasa-gr1-tabletop-tasks) 子集，包含 24 个桌面 Pick-and-Place 任务，使用 Fourier GR1 人形机器人的上半身（双臂）进行操作。
+
+本文档提供复现我们**实验结果**的操作指南。
 
 评测流程主要包含两部分：
 

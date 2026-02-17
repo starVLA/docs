@@ -1,54 +1,163 @@
 ---
 title: 快速开始
-description: 安装 StarVLA、完成环境验证、运行评测并训练基线。
+description: 从零开始安装 StarVLA、完成环境验证，并了解下一步该做什么。
 ---
 
 import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
 
-## 环境安装
+## 前置知识
 
-克隆主仓库并创建 Python 环境：
+如果你对以下概念还不熟悉，先花 1 分钟了解一下：
+
+- **VLM（Vision-Language Model，视觉-语言模型）**：能同时理解图像和文字的 AI 模型，例如 Qwen-VL、GPT-4V。
+- **WM（World Model，世界模型）**：能根据当前状态预测未来画面的视频生成模型，通常基于 DiT（Diffusion Transformer）等架构。外界有时也将基于 WM 改造的具身模型称为 **VA（Vision-Action）**。
+- **VLA（Vision-Language-Action Model，视觉-语言-动作模型）**：输入视觉和语言，输出机器人动作（如关节角度）以及可能的其他表征。实现 VLA 有两条路线：从 **VLM 改造**（在语言模型基础上加动作输出）或从 **WM 改造**（在视频生成模型基础上加动作输出）。
+- **StarVLA 做的事**：为上述改造提供全套基础设施（Infra）——数据加载、训练循环、评测部署管线全部可复用，**你只需要专注于模型本身**。不管你是从 VLM 还是 WM 出发，都可以用同一套工具完成训练和评测。
+
+## 环境要求
+
+| 项目 | 最低要求 | 推荐 |
+|------|---------|------|
+| GPU | 1 张 NVIDIA GPU（>=16GB 显存） | 8×A800 或更多（A100 / H200 等） |
+| CUDA | 12.0+ | 12.4 |
+| Python | 3.10 | 3.10 |
+| 磁盘空间 | ~20GB（代码 + 基础模型） | 100GB+（含数据集） |
+| 操作系统 | Linux（Ubuntu 20.04+） | Ubuntu 22.04 |
+
+:::note
+目前只支持 Linux。macOS 和 Windows 暂不支持（主要因为 flash-attn 和 DeepSpeed 的依赖限制）。
+:::
+
+## 第一步：安装
+
+<Steps>
+1. **克隆仓库**
+
+    ```bash
+    git clone https://github.com/starVLA/starVLA
+    cd starVLA
+    ```
+
+2. **创建 conda 环境**
+
+    ```bash
+    conda create -n starVLA python=3.10 -y
+    conda activate starVLA
+    ```
+
+3. **安装依赖**
+
+    ```bash
+    # 安装基础依赖
+    pip install -r requirements.txt
+
+    # 安装 FlashAttention2（加速 Transformer 推理，必装）
+    pip install flash-attn --no-build-isolation
+
+    # 以开发模式安装 starVLA
+    pip install -e .
+    ```
+</Steps>
+
+### 常见问题：flash-attn 安装失败
+
+`flash-attn` 对 CUDA 版本和 PyTorch 版本非常敏感。如果安装失败，先检查版本是否匹配：
 
 ```bash
-# Clone the repo
-git clone https://github.com/starVLA/starVLA
-
-# Create conda environment
-conda create -n starVLA python=3.10 -y
-conda activate starVLA
-
-# Install requirements
-pip install -r requirements.txt
-
-# Install FlashAttention2
-pip install flash-attn --no-build-isolation
-
-# Install starVLA
-pip install -e .
-```
-
-#### 常见问题：flash-attn
-
-`flash-attn` 需要与 CUDA 工具链（nvcc）和 PyTorch 版本匹配：
-
-```bash
+# 查看 CUDA 版本
 nvcc -V
+
+# 查看 PyTorch 和已安装包的版本
 pip list | grep -E 'torch|transformers|flash-attn'
 ```
 
-若安装失败，请选择与 CUDA 和 PyTorch 兼容的版本。已验证 `flash-attn==2.7.4.post1` 可在 nvcc `12.0` 与 `12.4` 上工作。
+**已验证的组合：**
+- `flash-attn==2.7.4.post1` + CUDA 12.0 / 12.4 + PyTorch 2.6.0
 
-## 快速验证 StarVLA
+如果 nvcc 版本和 PyTorch 的 CUDA 版本不一致（例如 nvcc 是 11.8 但 PyTorch 是 cu121），需要统一。最简单的方法是根据你的 nvcc 版本重装 PyTorch：
+
+```bash
+# 例：nvcc 12.4 对应安装
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+```
+
+## 第二步：快速验证
+
+验证安装是否成功，只需要两步：
 
 <Steps>
-1. 下载基础模型并放在文件夹下：
+1. **下载基础模型**
+
+    StarVLA 基于 Qwen-VL 系列模型，你需要先下载一个基础模型。
+
     ```bash
-    hf download Qwen/Qwen3-VL-4B-Instruct --local-dir ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
+    # 先安装 huggingface 命令行工具（如果还没装的话）
+    pip install huggingface_hub[cli]
+
+    # 下载 Qwen3-VL-4B 模型（约 8GB）
+    huggingface-cli download Qwen/Qwen3-VL-4B-Instruct --local-dir ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
     ```
-2. 使用假数据进行框架自检：
+
+    :::tip
+    如果下载速度慢，可以设置 HuggingFace 镜像：
+    ```bash
+    export HF_ENDPOINT=https://hf-mirror.com
+    ```
+    :::
+
+2. **运行框架自检**
+
+    用假数据跑一次前向传播，确认模型能正常加载和预测：
+
     ```bash
     python starVLA/model/framework/QwenGR00T.py
     ```
-    成功时会打印模型结构，且 `model.predict_action(fake_data)` 可返回未归一化动作。
+
+    **看到以下输出就说明安装成功了：**
+    - 打印出完整的模型结构
+    - `model.predict_action(fake_data)` 成功返回动作数组（形状为 `[batch, action_horizon, action_dim]`）
+    - 没有报错退出
+
+    如果遇到 CUDA out of memory，说明显存不够，可以尝试用更小的模型（如 Qwen2.5-VL-3B）。
 </Steps>
 
+## 目录结构概览
+
+安装完成后，你需要了解 StarVLA 的目录结构，后续训练和评测都会用到：
+
+```
+starVLA/                          # 项目根目录
+├── starVLA/                      # 核心代码包
+│   ├── model/framework/          # 模型定义（QwenOFT.py, QwenGR00T.py 等）
+│   ├── dataloader/               # 数据加载器
+│   ├── training/                 # 训练脚本
+│   └── config/                   # DeepSpeed 和训练配置模板
+├── deployment/                   # 部署相关（策略服务器）
+├── examples/                     # 各 Benchmark 的评测与训练示例
+│   ├── LIBERO/
+│   ├── SimplerEnv/
+│   ├── Robocasa_tabletop/
+│   ├── Robotwin/
+│   └── Behavior/
+├── playground/                   # 模型和数据存放约定目录
+│   ├── Pretrained_models/        # 放预训练模型（如 Qwen3-VL-4B-Instruct）
+│   └── Datasets/                 # 放训练数据集
+└── results/                      # 训练输出（checkpoint、日志）
+    └── Checkpoints/
+```
+
+:::tip
+`playground/` 和 `results/` 不会被 git 跟踪——它们是放数据和模型的约定位置。你也可以通过配置文件指定其他路径。
+:::
+
+## 下一步该做什么？
+
+安装验证通过后，根据你的目标选择路径：
+
+| 你的目标 | 推荐阅读 |
+|---------|---------|
+| 了解 StarVLA 的设计理念 | [乐高式设计](/zh-cn/design/lego-like/) |
+| 用已有 checkpoint 跑评测 | 先看 [模型库](/zh-cn/model-zoo/) 下载 checkpoint，再看对应 Benchmark（如 [LIBERO](/zh-cn/benchmarks/libero/)、[SimplerEnv](/zh-cn/benchmarks/simplerenv/)） |
+| 用自己的数据训练模型 | [使用自己的 LeRobot 数据集](/zh-cn/training/lerobot-dataset/) |
+| 在 VLM 数据上联合训练 | [与 VLM 数据联合训练](/zh-cn/training/cotrain-vlm/) |
+| 查看常见问题 | [FAQ](/zh-cn/faq/) |

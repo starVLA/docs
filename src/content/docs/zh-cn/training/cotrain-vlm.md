@@ -3,7 +3,9 @@ title: 与 VLM 数据联合训练
 description: 整合 VLM（视觉语言模型）数据来联合训练 StarVLA 框架。
 ---
 
-本指南介绍如何整合 VLM（Vision-Language Model）数据来联合训练 StarVLA（Vision-Language-Action）框架，以增强其通用的视觉和语言理解能力。
+本指南介绍如何整合 VLM（Vision-Language Model）数据来联合训练 StarVLA（Vision-Language-Action）框架。
+
+**为什么要联合训练？** 纯粹用机器人操作数据训练 VLA 时，VLM 骨干的视觉和语言理解能力可能会退化（"灾难性遗忘"）。混入 VLM 数据（图文问答、描述等）可以保持模型的通用理解能力，同时学习机器人操作。
 
 ---
 

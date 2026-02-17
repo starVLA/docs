@@ -3,6 +3,8 @@ title: RoboTwin 评测
 description: 复现 StarVLA 在 RoboTwin 2.0 基准测试上的实验结果。
 ---
 
+**RoboTwin 2.0** 是一个双臂机器人操作仿真基准，包含 50 个不同难度的任务（Easy / Hard 两种场景随机化程度），涵盖抓放、堆叠、工具使用等多种操作类型。
+
 本文档提供在 [RoboTwin 2.0](https://github.com/RoboTwin-Platform/RoboTwin) 上复现我们**实验结果**的操作指南。
 
 评测流程主要包含两部分：
@@ -99,7 +101,7 @@ pip install -r examples/Robotwin/eval_files/requirements.txt
 在第一个终端中，激活 `starVLA` conda 环境并运行：
 
 ```bash
-python examples/Robotwin/eval_files/run_policy_server.sh
+bash examples/Robotwin/eval_files/run_policy_server.sh
 ```
 
 在 `examples/Robotwin/eval_files/deploy_policy.yml` 和 `examples/Robotwin/eval_files/run_policy_server.sh` 中编辑你的检查点路径。
@@ -115,6 +117,16 @@ conda activate robotwin
 cd examples/Robotwin/eval_files
 bash eval.sh task_name demo_clean my_test_v1 0 0
 ```
+
+`eval.sh` 脚本接受 5 个位置参数：
+
+| 位置 | 含义 | 示例 |
+|------|------|------|
+| 1 | 任务名称（从下方列表中选择） | `adjust_bottle` |
+| 2 | 数据模式（`demo_clean` 或 `demo_randomized`） | `demo_clean` |
+| 3 | 实验名称（用于日志记录） | `my_test_v1` |
+| 4 | 起始 episode 编号 | `0` |
+| 5 | 仿真使用的 GPU ID | `0` |
 
 RoboTwin 2.0 中的所有任务包括：
 

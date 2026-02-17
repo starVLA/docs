@@ -130,7 +130,7 @@ your_dataset_name/
 }
 ```
 
-StarVLA 提供了目前已经支持的数据集的全部 LeRobot 格式，或者使用了其他人提供的 LeRobot 数据集，具体可以到文档的对应章节查看。
+StarVLA 已为所有内置支持的 Benchmark 提供了对应的 `modality.json` 文件，你可以在各 Benchmark 的示例目录中找到它们（如 `examples/LIBERO/train_files/modality.json`、`examples/SimplerEnv/train_files/modality.json`）。
 
 ## 步骤二：创建 Robot Type Config
 
@@ -284,101 +284,91 @@ playground/Datasets/MY_DATA_ROOT/
 创建 YAML 配置文件（例如 `examples/MyRobot/train_files/starvla_my_robot.yaml`）：
 
 ```yaml
-# 运行配置
-run_id: my_robot_training
-run_root_dir: results/Checkpoints
+# ===== 运行配置 =====
+run_id: my_robot_training           # 实验名称，checkpoint 保存在 run_root_dir/run_id/
+run_root_dir: results/Checkpoints   # checkpoint 输出根目录
 seed: 42
-trackers: [jsonl, wandb]
-wandb_entity: your_wandb_entity
+trackers: [jsonl, wandb]            # 日志方式：jsonl 本地文件 + wandb 在线
+wandb_entity: your_wandb_entity     # 你的 wandb 用户名或团队名
 wandb_project: my_robot_project
-is_debug: false
+is_debug: false                     # 设为 true 时只用少量数据快速调试
 
+# ===== 模型框架配置 =====
 framework:
-  name: QwenOFT
+  name: QwenOFT                     # 选择框架：QwenOFT / QwenGR00T / QwenFast / QwenPI
   qwenvl:
-    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
+    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct  # VLM 基座模型路径
     attn_implementation: flash_attention_2
-    vl_hidden_dim: 2048
+    vl_hidden_dim: 2048             # VLM 隐藏层维度（Qwen3-VL-4B 为 2048）
   dino:
-    dino_backbone: dinov2_vits14
+    dino_backbone: dinov2_vits14    # 额外视觉编码器（可选，用于提供空间特征）
 
   action_model:
-    action_model_type: DiT-B
-    hidden_size: 1024     # 和 DiT 最后的 projection 对应，用于 ActionDecoder
-    add_pos_embed: True
+    action_model_type: DiT-B        # 动作模型类型（DiT-B 仅用于 GR00T/PI 框架）
+    hidden_size: 1024
     max_seq_len: 1024
-    action_dim: 14
-    state_dim: 14
-    future_action_window_size: 15
-    action_horizon: 16
-    past_action_window_size: 0
-    repeated_diffusion_steps: 8
-    noise_beta_alpha: 1.5
-    noise_beta_beta: 1.0
-    noise_s: 0.999
-    num_timestep_buckets: 1000
-    num_inference_timesteps: 4
-    num_target_vision_tokens: 32
-    diffusion_model_cfg:    # DiT Transformers 的参数
-      cross_attention_dim: 2048 # VLM 的 dim
+    action_dim: 14                  # 动作维度 = 你的机器人关节数（例：7关节×双臂=14）
+    state_dim: 14                   # 状态维度，通常和 action_dim 相同
+    future_action_window_size: 15   # 模型预测未来多少步动作（action chunk 长度-1）
+    action_horizon: 16              # 总动作序列长度 = future + 1（当前步）
+    past_action_window_size: 0      # 历史动作窗口（0 = 不使用历史动作）
+    repeated_diffusion_steps: 8     # 训练时每步重复扩散采样次数（仅 GR00T/PI）
+    num_inference_timesteps: 4      # 推理时扩散步数（越少越快，但精度可能下降）
+    num_target_vision_tokens: 32    # 从 VLM 提取的视觉 token 数（压缩后）
+    # 以下为 DiT Transformer 的内部参数，通常不需要修改：
+    diffusion_model_cfg:
+      cross_attention_dim: 2048     # 需与 VLM 的 hidden_dim 一致
       dropout: 0.2
-      final_dropout: true
-      interleave_self_attention: true
-      norm_type: "ada_norm"
       num_layers: 16
       output_dim: 2560
-      positional_embeddings: null
 
+# ===== 数据集配置 =====
 datasets:
+  # VLM 数据（可选，仅联合训练时需要）
   vlm_data:
     dataset_py: vlm_datasets
     dataformat: llava_json
-    dataset_use: asv2_conversation_en,asv2_detailed_description_en,asv2_region_captioning_en,coco_internvl_longcap_en,coco_karpathy_train_567_en,coco_negative_gpt4o_en,coco_poetry_zh,coco_rem_en_zh,cocorem_exist_yorn_en,cocotextv2_en,cocotextv2_gpt4o_en,okvqa_en,refcoco_grounding_aug_en,refcoco_grounding_en,tallyqa_coco_en,toloka_grounding_aug_en,vqav2_en,vsr_en
-    eval_dataset: aokvqa_cauldron_llava_format
-    data_flatten: false
-    base_interval: 2
-    max_pixels: 50176
-    min_pixels: 784
-    model_max_length: 2048
-    model_type: qwen2.5vl
+    dataset_use: sharegpt4v_coco    # 在 qwen_data_config.py 中注册的数据集名
     per_device_batch_size: 4
 
+  # VLA 数据（机器人操作数据，必需）
   vla_data:
     dataset_py: lerobot_datasets
-    data_root_dir: playground/Datasets/MY_DATA_ROOT
-    data_mix: my_dataset           # 你注册的混合名称
-    action_type: abs_qpos
-    default_image_resolution: [3, 224, 224]
+    data_root_dir: playground/Datasets/MY_DATA_ROOT  # 数据集根目录
+    data_mix: my_dataset            # 在 mixtures.py 中注册的混合名称
+    action_type: abs_qpos           # 动作类型：abs_qpos（绝对关节位置）
+    default_image_resolution: [3, 224, 224]  # [通道, 高, 宽]
     per_device_batch_size: 16
     load_all_data_for_training: true
-    obs: ["image_0"]
+    obs: ["image_0"]                # 使用哪些相机（image_0 = 第一个相机）
     image_size: [224,224]
-    video_backend: torchvision_av
+    video_backend: torchvision_av   # 视频解码后端（torchvision_av 或 decord）
 
+# ===== 训练器配置 =====
 trainer:
   epochs: 100
-  max_train_steps: 100000
-  num_warmup_steps: 5000
-  save_interval: 5000
-  eval_interval: 100
+  max_train_steps: 100000           # 最大训练步数（达到后停止，不管 epoch）
+  num_warmup_steps: 5000            # 学习率预热步数
+  save_interval: 5000               # 每隔多少步保存 checkpoint
+  eval_interval: 100                # 每隔多少步在验证集上评估
+
+  # 分模块学习率：不同组件可以用不同学习率
   learning_rate:
-    base: 1e-05
-    qwen_vl_interface: 1.0e-05
-    action_model: 1.0e-04
+    base: 1e-05                     # 默认学习率（其他模块如未指定则用此值）
+    qwen_vl_interface: 1.0e-05      # VLM 骨干学习率
+    action_model: 1.0e-04           # 动作头学习率（通常设高一些，因为从头训练）
+
   lr_scheduler_type: cosine_with_min_lr
   scheduler_specific_kwargs:
-    min_lr: 5.0e-07
-  freeze_modules: ''
+    min_lr: 5.0e-07                 # 余弦退火的最小学习率
+
+  freeze_modules: ''                # 要冻结的模块路径（空 = 全部可训练）
   loss_scale:
-    vla: 1.0
-    vlm: 0.1
-  repeated_diffusion_steps: 4
-  max_grad_norm: 1.0
-  warmup_ratio: 0.1
-  weight_decay: 0.0
-  logging_frequency: 10
-  gradient_clipping: 1.0
-  gradient_accumulation_steps: 1
+    vla: 1.0                        # VLA 损失权重
+    vlm: 0.1                        # VLM 损失权重（联合训练时使用）
+  repeated_diffusion_steps: 4       # 训练时每步扩散采样次数（覆盖 action_model 中的值）
+  max_grad_norm: 1.0                # 梯度裁剪阈值
+  gradient_accumulation_steps: 1    # 梯度累积步数（显存不够时增大）
 
   optimizer:
     name: AdamW
@@ -386,6 +376,15 @@ trainer:
     eps: 1.0e-08
     weight_decay: 1.0e-08
 ```
+
+:::tip[关于 action_dim 和 state_dim]
+这两个值取决于你的机器人硬件。例如：
+- 单臂 7 关节 + 1 夹爪 → `action_dim: 8`, `state_dim: 8`
+- 双臂各 7 关节 → `action_dim: 14`, `state_dim: 14`
+- BEHAVIOR 的 R1Pro 人形 → `action_dim: 23`, `state_dim: 23`
+
+必须与你在 DataConfig 中定义的 action/state keys 的总维度一致。
+:::
 
 | 框架 | 动作头 | 适用场景 |
 |------|--------|----------|

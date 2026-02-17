@@ -7,7 +7,7 @@ description: 使用 StarVLA 框架运行 BEHAVIOR-1K 基准测试。
 本文档正在积极开发中。
 :::
 
-本文档提供使用 [BEHAVIOR-1K Benchmark](https://github.com/StanfordVL/BEHAVIOR-1K) 运行我们框架的操作指南。我们遵循 [2025 BEHAVIOR Challenge](https://behavior.stanford.edu/challenge/index.html) 的结构，以便你可以在 50 个完整的家庭任务上进行训练和评测。
+**BEHAVIOR-1K** 是斯坦福大学开发的家庭任务仿真基准，包含 1000 种日常生活活动（如做饭、清洁、整理等）。我们按照 [2025 BEHAVIOR Challenge](https://behavior.stanford.edu/challenge/index.html) 的结构，在 50 个完整家庭任务上进行训练和评测。使用 R1Pro 人形机器人（双臂 + 底座 + 躯干，23 维动作空间）。
 
 评测流程主要包含两部分：
 
@@ -15,7 +15,11 @@ description: 使用 StarVLA 框架运行 BEHAVIOR-1K 基准测试。
 2. 分别在 `starVLA` 与 `behavior` 环境中启动服务并运行评测。
 
 :::note[GPU 要求]
-在 BEHAVIOR 基准测试上运行评测时，**不要**使用没有 RT Cores 的 GPU（如 A100、H100）。否则可能会遇到 Segmentation fault 或低分辨率问题。详情请参阅 [此 issue](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1872#issuecomment-3455002820) 和 [此讨论](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1875#issuecomment-3444246495)。
+BEHAVIOR 的仿真器（OmniGibson）依赖**硬件光线追踪（RT Cores）**进行渲染。以下 GPU **不能使用**：A100、H100（它们没有 RT Cores）。
+
+**推荐使用**：RTX 3090、RTX 4090 或其他 GeForce RTX / Quadro RTX 系列 GPU。
+
+详情请参阅 [此 issue](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1872#issuecomment-3455002820) 和 [此讨论](https://github.com/StanfordVL/BEHAVIOR-1K/issues/1875#issuecomment-3444246495)。
 :::
 
 ---

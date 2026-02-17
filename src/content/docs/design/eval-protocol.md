@@ -11,7 +11,13 @@ StarVLA standardizes the inference pipeline for real-robot or simulation evaluat
 
 ## Architecture
 
-The StarVLA framework uses a client-server architecture to separate the Evaluation/Deployment Environment (Client) from the Policy Server (Model). The Policy Server (Model) handles model inference, while the client side performs unnormalization, delta-to-absolute conversion, action ensembling, etc.
+The StarVLA framework uses a **client-server architecture** to separate the evaluation/deployment environment (client) from the policy server (model inference).
+
+- **Policy Server**: Loads the model, receives observations, and outputs normalized actions.
+- **Client**: Interfaces with the simulator or real robot, and post-processes model outputs:
+  - **Unnormalize**: Converts the model's [-1, 1] normalized actions back to physical quantities (e.g., joint angles).
+  - **Delta-to-Absolute**: If the model outputs incremental actions relative to the current position, adds them to the current state to get absolute target positions.
+  - **Action Ensemble**: The model may predict multiple future steps at once; overlapping predictions from consecutive calls are weighted-averaged for smoother execution.
 
 ![Policy Server Architecture](../../../assets/starVLA_PolicyServer.png)
 
@@ -54,12 +60,13 @@ For the Model Server, simply launch it with:
 
 ```bash
 #!/bin/bash
-export PYTHONPATH=$(pwd):${PYTHONPATH} # let LIBERO find the websocket tools from main repo
-export star_vla_python=/root/miniconda3/envs/starvla/bin/python
-your_ckpt=results/Checkpoints/xxx.pt
+export PYTHONPATH=$(pwd):${PYTHONPATH}
+
+# Point to your StarVLA conda Python (adjust the path for your system)
+export star_vla_python=$(which python)
+your_ckpt=results/Checkpoints/xxx.pt   # Replace with your checkpoint path
 gpu_id=0
 port=5694
-################# star Policy Server ######################
 
 # export DEBUG=true
 CUDA_VISIBLE_DEVICES=$gpu_id ${star_vla_python} deployment/model_server/server_policy.py \

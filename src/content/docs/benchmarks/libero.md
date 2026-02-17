@@ -3,6 +3,8 @@ title: LIBERO Evaluation
 description: Reproduce StarVLA experimental results on LIBERO (setup, evaluation workflow, and training notes).
 ---
 
+**LIBERO** is a tabletop robotic manipulation benchmark with 4 task suites (Spatial, Object, Goal, Long Horizon), totaling 40 tasks. It tests VLA models on spatial understanding, object recognition, goal reasoning, and long-horizon manipulation using a Franka robotic arm.
+
 This document provides instructions for reproducing our **experimental results** with LIBERO.
 The evaluation process consists of two main parts:
 
@@ -80,9 +82,16 @@ In the second terminal, activate the `LIBERO` conda environment and run:
 bash examples/LIBERO/eval_files/eval_libero.sh
 ```
 
-⚠️ **Note:** Please ensure that you specify the correct checkpoint path in `eval_libero.sh` to load action unnormalization stats.
+⚠️ **Note:** Make sure you correctly set the following variables in `eval_libero.sh`:
 
-Also ensure the environment variables at the top of `eval_libero.sh` are correctly set.
+| Variable | Meaning | Example |
+|----------|---------|---------|
+| `LIBERO_HOME` | Path to your LIBERO repo clone | `/path/to/LIBERO` |
+| `LIBERO_Python` | Python path from the LIBERO conda env | `$(which python)` (inside LIBERO env) |
+| `your_ckpt` | StarVLA checkpoint path | `./results/Checkpoints/.../steps_30000_pytorch_model.pt` |
+| `unnorm_key` | Robot type name for loading unnormalization stats | `franka` (LIBERO uses Franka arm) |
+
+`unnorm_key` is used to load normalization statistics (min/max, etc.) saved during training, converting normalized model outputs back to actual joint angles.
 
 Finally, each result will also save a video for visualization, as shown below:
 

@@ -23,7 +23,7 @@ Yes. StarVLA uses `OmegaConf.load(args.config_yaml)` as the single configuration
 accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
   --num_processes 8 \
-  starVLA/training/train_internvla.py \
+  starVLA/training/train_starvla.py \
   --config_yaml ./starVLA/config/training/starvla_cotrain_oxe.yaml \
   --framework.qwenvl.base_vlm Qwen/Qwen2.5-VL-7B-Instruct \
   --framework.action_model.new_module ${module_name}

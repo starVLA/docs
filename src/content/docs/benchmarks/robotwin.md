@@ -3,6 +3,8 @@ title: RoboTwin Evaluation
 description: Reproduce StarVLA experimental results on RoboTwin 2.0 benchmark.
 ---
 
+**RoboTwin 2.0** is a dual-arm robot manipulation benchmark with 50 tasks at two difficulty levels (Easy / Hard with different scene randomization), covering grasping, stacking, tool use, and various other manipulation types.
+
 This document provides instructions for reproducing our **experimental results** with [RoboTwin 2.0](https://github.com/RoboTwin-Platform/RoboTwin).
 
 The evaluation process consists of two main parts:
@@ -99,7 +101,7 @@ And edit `ROBOTWIN_PATH` in `examples/Robotwin/eval_files/eval.sh`.
 In the first terminal, activate the `starVLA` conda environment and run:
 
 ```bash
-python examples/Robotwin/eval_files/run_policy_server.sh
+bash examples/Robotwin/eval_files/run_policy_server.sh
 ```
 
 Edit your checkpoint path in `examples/Robotwin/eval_files/deploy_policy.yml` and `examples/Robotwin/eval_files/run_policy_server.sh`.
@@ -115,6 +117,16 @@ conda activate robotwin
 cd examples/Robotwin/eval_files
 bash eval.sh task_name demo_clean my_test_v1 0 0
 ```
+
+The `eval.sh` script takes 5 positional arguments:
+
+| Position | Meaning | Example |
+|----------|---------|---------|
+| 1 | Task name (from the list below) | `adjust_bottle` |
+| 2 | Data mode (`demo_clean` or `demo_randomized`) | `demo_clean` |
+| 3 | Experiment name (for logging) | `my_test_v1` |
+| 4 | Start episode index | `0` |
+| 5 | GPU ID for the simulation | `0` |
 
 All tasks in RoboTwin 2.0 include:
 

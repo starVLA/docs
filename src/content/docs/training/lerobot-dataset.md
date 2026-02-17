@@ -130,7 +130,7 @@ Create a `modality.json` file in your training directory to define the mapping b
 }
 ```
 
-StarVLA provides LeRobot formats for all currently supported datasets, or you can use LeRobot datasets provided by others. See the corresponding sections in the documentation for details.
+StarVLA provides `modality.json` files for all built-in benchmarks. You can find them in each benchmark's example directory (e.g., `examples/LIBERO/train_files/modality.json`, `examples/SimplerEnv/train_files/modality.json`).
 
 ## Step 2: Create Robot Type Config
 
@@ -284,101 +284,91 @@ playground/Datasets/MY_DATA_ROOT/
 Create a YAML config file (e.g., `examples/MyRobot/train_files/starvla_my_robot.yaml`):
 
 ```yaml
-# Run configuration
-run_id: my_robot_training
-run_root_dir: results/Checkpoints
+# ===== Run Configuration =====
+run_id: my_robot_training           # Experiment name; checkpoints saved under run_root_dir/run_id/
+run_root_dir: results/Checkpoints   # Root directory for checkpoint output
 seed: 42
-trackers: [jsonl, wandb]
-wandb_entity: your_wandb_entity
+trackers: [jsonl, wandb]            # Logging: jsonl (local) + wandb (online)
+wandb_entity: your_wandb_entity     # Your wandb username or team
 wandb_project: my_robot_project
-is_debug: false
+is_debug: false                     # Set true to use minimal data for quick debugging
 
+# ===== Model Framework Configuration =====
 framework:
-  name: QwenOFT
+  name: QwenOFT                     # Choose: QwenOFT / QwenGR00T / QwenFast / QwenPI
   qwenvl:
-    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
+    base_vlm: ./playground/Pretrained_models/Qwen3-VL-4B-Instruct  # VLM base model path
     attn_implementation: flash_attention_2
-    vl_hidden_dim: 2048
+    vl_hidden_dim: 2048             # VLM hidden dimension (2048 for Qwen3-VL-4B)
   dino:
-    dino_backbone: dinov2_vits14
+    dino_backbone: dinov2_vits14    # Optional extra vision encoder for spatial features
 
   action_model:
-    action_model_type: DiT-B
-    hidden_size: 1024     # Corresponds to DiT's final projection, used for ActionDecoder
-    add_pos_embed: True
+    action_model_type: DiT-B        # Action model type (DiT-B only for GR00T/PI frameworks)
+    hidden_size: 1024
     max_seq_len: 1024
-    action_dim: 14
-    state_dim: 14
-    future_action_window_size: 15
-    action_horizon: 16
-    past_action_window_size: 0
-    repeated_diffusion_steps: 8
-    noise_beta_alpha: 1.5
-    noise_beta_beta: 1.0
-    noise_s: 0.999
-    num_timestep_buckets: 1000
-    num_inference_timesteps: 4
-    num_target_vision_tokens: 32
-    diffusion_model_cfg:    # DiT Transformer parameters
-      cross_attention_dim: 2048 # VLM dim
+    action_dim: 14                  # Action dimension = your robot's joint count (e.g., 7 joints × 2 arms = 14)
+    state_dim: 14                   # State dimension, usually same as action_dim
+    future_action_window_size: 15   # How many future steps the model predicts (action chunk length - 1)
+    action_horizon: 16              # Total action sequence length = future + 1 (current step)
+    past_action_window_size: 0      # Historical action window (0 = no history)
+    repeated_diffusion_steps: 8     # Diffusion sampling repeats during training (GR00T/PI only)
+    num_inference_timesteps: 4      # Diffusion steps at inference (fewer = faster, less precise)
+    num_target_vision_tokens: 32    # Number of compressed vision tokens from VLM
+    # DiT Transformer internals (usually no need to modify):
+    diffusion_model_cfg:
+      cross_attention_dim: 2048     # Must match VLM's hidden_dim
       dropout: 0.2
-      final_dropout: true
-      interleave_self_attention: true
-      norm_type: "ada_norm"
       num_layers: 16
       output_dim: 2560
-      positional_embeddings: null
 
+# ===== Dataset Configuration =====
 datasets:
+  # VLM data (optional, only needed for co-training)
   vlm_data:
     dataset_py: vlm_datasets
     dataformat: llava_json
-    dataset_use: asv2_conversation_en,asv2_detailed_description_en,asv2_region_captioning_en,coco_internvl_longcap_en,coco_karpathy_train_567_en,coco_negative_gpt4o_en,coco_poetry_zh,coco_rem_en_zh,cocorem_exist_yorn_en,cocotextv2_en,cocotextv2_gpt4o_en,okvqa_en,refcoco_grounding_aug_en,refcoco_grounding_en,tallyqa_coco_en,toloka_grounding_aug_en,vqav2_en,vsr_en
-    eval_dataset: aokvqa_cauldron_llava_format
-    data_flatten: false
-    base_interval: 2
-    max_pixels: 50176
-    min_pixels: 784
-    model_max_length: 2048
-    model_type: qwen2.5vl
+    dataset_use: sharegpt4v_coco    # Dataset name registered in qwen_data_config.py
     per_device_batch_size: 4
 
+  # VLA data (robot manipulation data, required)
   vla_data:
     dataset_py: lerobot_datasets
-    data_root_dir: playground/Datasets/MY_DATA_ROOT
-    data_mix: my_dataset           # Your registered mixture name
-    action_type: abs_qpos
-    default_image_resolution: [3, 224, 224]
+    data_root_dir: playground/Datasets/MY_DATA_ROOT  # Dataset root directory
+    data_mix: my_dataset            # Mixture name registered in mixtures.py
+    action_type: abs_qpos           # Action type: abs_qpos (absolute joint positions)
+    default_image_resolution: [3, 224, 224]  # [channels, height, width]
     per_device_batch_size: 16
     load_all_data_for_training: true
-    obs: ["image_0"]
+    obs: ["image_0"]                # Which cameras to use (image_0 = first camera)
     image_size: [224,224]
-    video_backend: torchvision_av
+    video_backend: torchvision_av   # Video decode backend (torchvision_av or decord)
 
+# ===== Trainer Configuration =====
 trainer:
   epochs: 100
-  max_train_steps: 100000
-  num_warmup_steps: 5000
-  save_interval: 5000
-  eval_interval: 100
+  max_train_steps: 100000           # Max training steps (stops here regardless of epochs)
+  num_warmup_steps: 5000            # Learning rate warmup steps
+  save_interval: 5000               # Save checkpoint every N steps
+  eval_interval: 100                # Evaluate on validation set every N steps
+
+  # Per-module learning rates: different components can use different rates
   learning_rate:
-    base: 1e-05
-    qwen_vl_interface: 1.0e-05
-    action_model: 1.0e-04
+    base: 1e-05                     # Default LR (used for modules not specified below)
+    qwen_vl_interface: 1.0e-05      # VLM backbone LR
+    action_model: 1.0e-04           # Action head LR (higher since training from scratch)
+
   lr_scheduler_type: cosine_with_min_lr
   scheduler_specific_kwargs:
-    min_lr: 5.0e-07
-  freeze_modules: ''
+    min_lr: 5.0e-07                 # Minimum LR for cosine decay
+
+  freeze_modules: ''                # Module paths to freeze (empty = all trainable)
   loss_scale:
-    vla: 1.0
-    vlm: 0.1
-  repeated_diffusion_steps: 4
-  max_grad_norm: 1.0
-  warmup_ratio: 0.1
-  weight_decay: 0.0
-  logging_frequency: 10
-  gradient_clipping: 1.0
-  gradient_accumulation_steps: 1
+    vla: 1.0                        # VLA loss weight
+    vlm: 0.1                        # VLM loss weight (for co-training)
+  repeated_diffusion_steps: 4       # Diffusion sampling repeats at train time (overrides action_model value)
+  max_grad_norm: 1.0                # Gradient clipping threshold
+  gradient_accumulation_steps: 1    # Increase if running out of GPU memory
 
   optimizer:
     name: AdamW
@@ -386,6 +376,15 @@ trainer:
     eps: 1.0e-08
     weight_decay: 1.0e-08
 ```
+
+:::tip[About action_dim and state_dim]
+These values depend on your robot hardware. Examples:
+- Single arm with 7 joints + 1 gripper → `action_dim: 8`, `state_dim: 8`
+- Dual arm with 7 joints each → `action_dim: 14`, `state_dim: 14`
+- BEHAVIOR R1Pro humanoid → `action_dim: 23`, `state_dim: 23`
+
+Must match the total dimension of action/state keys defined in your DataConfig.
+:::
 
 | Framework | Action Head | Best For |
 |-----------|-------------|----------|

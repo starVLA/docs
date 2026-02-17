@@ -3,6 +3,8 @@ title: LIBERO 评测
 description: 复现 StarVLA 在 LIBERO 上的实验结果（环境配置、评测流程与训练说明）。
 ---
 
+**LIBERO** 是一个桌面机械臂操作仿真基准，包含 4 个任务套件（Spatial、Object、Goal、Long Horizon），共 40 个任务，用来测试 VLA 模型的空间理解、物体识别、目标推理和长序列操作能力。使用 Franka 机械臂。
+
 本文档提供在 LIBERO 上复现我们**实验结果**的操作指南。评测流程主要包含两部分：
 
 1. 配置 `LIBERO` 环境与依赖。
@@ -79,9 +81,16 @@ bash examples/LIBERO/eval_files/run_policy_server.sh
 bash examples/LIBERO/eval_files/eval_libero.sh
 ```
 
-⚠️ **注意**：请确保你在 `eval_libero.sh` 中填写了正确的 checkpoint 路径，以便加载 action unnormalization 的统计信息。
+⚠️ **注意**：请确保你在 `eval_libero.sh` 中正确设置了以下变量：
 
-同时请确认 `eval_libero.sh` 顶部的环境变量均已正确设置。
+| 变量 | 含义 | 示例 |
+|------|------|------|
+| `LIBERO_HOME` | LIBERO 仓库克隆路径 | `/path/to/LIBERO` |
+| `LIBERO_Python` | LIBERO conda 环境的 Python 路径 | `$(which python)` （在 LIBERO 环境中） |
+| `your_ckpt` | StarVLA checkpoint 路径 | `./results/Checkpoints/.../steps_30000_pytorch_model.pt` |
+| `unnorm_key` | 数据集的 robot type 名，用于加载反归一化统计量 | `franka`（LIBERO 使用 Franka 机械臂） |
+
+`unnorm_key` 用来从 checkpoint 中读取训练时保存的归一化统计信息（min/max 等），以便在评测时将模型输出的归一化动作恢复为实际关节角度。
 
 最后，每次评测结果也会保存一段可视化视频（示例）：
 

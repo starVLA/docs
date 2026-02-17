@@ -1,53 +1,156 @@
 ---
 title: Quick Start
-description: Install StarVLA, verify your setup, run evaluations, and train a baseline.
+description: Install StarVLA from scratch, verify your setup, and learn what to do next.
 ---
 
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
 
-## Environment Setup
+## Background
 
-Clone the main repository and create a Python environment:
+If you're new to these concepts, here's a quick primer:
+
+- **VLM (Vision-Language Model)**: An AI model that understands both images and text, such as Qwen-VL or GPT-4V.
+- **WM (World Model)**: A video generation model that predicts future visual frames from the current state, typically based on architectures like DiT (Diffusion Transformer). Embodied models built from WMs are sometimes called **VA (Vision-Action)** models externally.
+- **VLA (Vision-Language-Action Model)**: Takes vision and language as input, outputs robot actions (e.g., joint angles) and potentially other representations. There are two routes to building a VLA: adapting a **VLM** (adding action output to a language model) or adapting a **WM** (adding action output to a video generation model).
+- **What StarVLA does**: Provides the full infrastructure for both routes — data loading, training loops, evaluation, and deployment pipelines are all reusable so **you can focus on the model itself**. Whether you start from a VLM or a WM, you use the same toolkit for training and evaluation.
+
+## Requirements
+
+| Item | Minimum | Recommended |
+|------|---------|-------------|
+| GPU | 1x NVIDIA GPU (>=16GB VRAM) | 8×A800 or more (A100 / H200, etc.) |
+| CUDA | 12.0+ | 12.4 |
+| Python | 3.10 | 3.10 |
+| Disk | ~20GB (code + base model) | 100GB+ (with datasets) |
+| OS | Linux (Ubuntu 20.04+) | Ubuntu 22.04 |
+
+:::note
+Only Linux is supported. macOS and Windows are not currently supported due to flash-attn and DeepSpeed dependency constraints.
+:::
+
+## Step 1: Installation
+
+<Steps>
+1. **Clone the repository**
+
+    ```bash
+    git clone https://github.com/starVLA/starVLA
+    cd starVLA
+    ```
+
+2. **Create a conda environment**
+
+    ```bash
+    conda create -n starVLA python=3.10 -y
+    conda activate starVLA
+    ```
+
+3. **Install dependencies**
+
+    ```bash
+    # Install base dependencies
+    pip install -r requirements.txt
+
+    # Install FlashAttention2 (required for fast Transformer inference)
+    pip install flash-attn --no-build-isolation
+
+    # Install starVLA in development mode
+    pip install -e .
+    ```
+</Steps>
+
+### Troubleshooting: flash-attn Installation
+
+`flash-attn` is sensitive to CUDA and PyTorch versions. If installation fails, check version compatibility:
 
 ```bash
-# Clone the repo
-git clone https://github.com/starVLA/starVLA
-
-# Create conda environment
-conda create -n starVLA python=3.10 -y
-conda activate starVLA
-
-# Install requirements
-pip install -r requirements.txt
-
-# Install FlashAttention2
-pip install flash-attn --no-build-isolation
-
-# Install starVLA
-pip install -e .
-```
-
-#### Common Issues: flash-attn
-
-`flash-attn` must match your CUDA toolkit (nvcc) and PyTorch versions.
-
-```bash
+# Check CUDA version
 nvcc -V
+
+# Check installed package versions
 pip list | grep -E 'torch|transformers|flash-attn'
 ```
 
-If installation fails, choose a version compatible with your CUDA and PyTorch setup. The team verified `flash-attn==2.7.4.post1` with nvcc `12.0` and `12.4`.
+**Verified combinations:**
+- `flash-attn==2.7.4.post1` + CUDA 12.0 / 12.4 + PyTorch 2.6.0
 
-## Quick Check StarVLA
+If your nvcc version doesn't match your PyTorch CUDA version (e.g., nvcc 11.8 but PyTorch cu121), you need to align them. The simplest way is to reinstall PyTorch for your nvcc version:
+
+```bash
+# Example: for nvcc 12.4
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+```
+
+## Step 2: Verify Installation
+
+Two quick steps to confirm everything works:
 
 <Steps>
-1. Download the base model into:
+1. **Download a base model**
+
+    StarVLA is built on the Qwen-VL model family. You need to download a base model first.
+
     ```bash
-    hf download Qwen/Qwen3-VL-4B-Instruct --local-dir ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
+    # Install the Hugging Face CLI (if not already installed)
+    pip install huggingface_hub[cli]
+
+    # Download Qwen3-VL-4B (~8GB)
+    huggingface-cli download Qwen/Qwen3-VL-4B-Instruct --local-dir ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
     ```
-2. Run a minimal framework test with fake inputs:
+
+2. **Run a framework smoke test**
+
+    Run a forward pass with fake data to verify the model loads and predicts correctly:
+
     ```bash
     python starVLA/model/framework/QwenGR00T.py
     ```
-    If the setup is correct, the script prints the model and `model.predict_action(fake_data)` returns unnormalized actions.
+
+    **You should see:**
+    - The full model structure printed
+    - `model.predict_action(fake_data)` returns an action array (shape: `[batch, action_horizon, action_dim]`)
+    - No errors
+
+    If you get CUDA out of memory, try a smaller model (e.g., Qwen2.5-VL-3B).
 </Steps>
+
+## Directory Structure
+
+After installation, here's the project layout you'll work with:
+
+```
+starVLA/                          # Project root
+├── starVLA/                      # Core package
+│   ├── model/framework/          # Model definitions (QwenOFT.py, QwenGR00T.py, etc.)
+│   ├── dataloader/               # Data loading pipelines
+│   ├── training/                 # Training scripts
+│   └── config/                   # DeepSpeed and training config templates
+├── deployment/                   # Deployment (policy server)
+├── examples/                     # Per-benchmark evaluation and training examples
+│   ├── LIBERO/
+│   ├── SimplerEnv/
+│   ├── Robocasa_tabletop/
+│   ├── Robotwin/
+│   └── Behavior/
+├── playground/                   # Convention directory for models and data
+│   ├── Pretrained_models/        # Base models (e.g., Qwen3-VL-4B-Instruct)
+│   └── Datasets/                 # Training datasets
+└── results/                      # Training outputs (checkpoints, logs)
+    └── Checkpoints/
+```
+
+:::tip
+`playground/` and `results/` are gitignored — they're conventional locations for data and models. You can override these paths in config files.
+:::
+
+## What's Next?
+
+Once your installation is verified, choose your path:
+
+| Your Goal | Recommended Reading |
+|-----------|-------------------|
+| Understand StarVLA's design | [Lego-like Design](/design/lego-like/) |
+| Run evaluation with existing checkpoints | Check [Model Zoo](/model-zoo/) for checkpoints, then follow a benchmark guide ([LIBERO](/benchmarks/libero/), [SimplerEnv](/benchmarks/simplerenv/)) |
+| Train with your own data | [Use Your Own LeRobot Dataset](/training/lerobot-dataset/) |
+| Co-train with VLM data | [Co-Training with VLM Data](/training/cotrain-vlm/) |
+| Common questions | [FAQ](/faq/) |

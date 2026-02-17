@@ -40,7 +40,7 @@ StarVLA 使用单一全局配置对象，参数以可扩展 dict 形式传递，
 accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
   --num_processes 8 \
-  starVLA/training/train_internvla.py \
+  starVLA/training/train_starvla.py \
   --config_yaml ./starVLA/config/training/starvla_cotrain_oxe.yaml \
   --framework.qwenvl.base_vlm Qwen/Qwen2.5-VL-7B-Instruct \
   --framework.action_model.new_module ${module_name}

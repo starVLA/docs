@@ -3,7 +3,9 @@ title: RoboCasa Evaluation
 description: Reproduce StarVLA experimental results on RoboCasa GR1 Tabletop Tasks.
 ---
 
-This document provides instructions for reproducing our **experimental results** with [RoboCasa GR1 Tabletop Tasks](https://github.com/robocasa/robocasa-gr1-tabletop-tasks).
+**RoboCasa** is a large-scale household simulation benchmark. Here we use the [GR1 Tabletop Tasks](https://github.com/robocasa/robocasa-gr1-tabletop-tasks) subset, featuring 24 tabletop Pick-and-Place tasks performed by a Fourier GR1 humanoid robot (upper body, dual arms).
+
+This document provides instructions for reproducing our **experimental results**.
 
 The evaluation process consists of two main parts:
 

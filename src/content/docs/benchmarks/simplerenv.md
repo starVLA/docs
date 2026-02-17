@@ -3,6 +3,8 @@ title: SimplerEnv Evaluation
 description: Reproduce StarVLA experimental results on SimplerEnv (setup, evaluation workflow, and training notes).
 ---
 
+**SimplerEnv** is a ManiSkill-based simulation environment using the WidowX robotic arm for tabletop manipulation tasks (grasping, placing, drawer operations, etc.). It is widely used to evaluate VLA models trained on the Open X-Embodiment (OXE) dataset.
+
 This document provides instructions for reproducing our **experimental results** with SimplerEnv.
 
 The evaluation process consists of two main parts:
