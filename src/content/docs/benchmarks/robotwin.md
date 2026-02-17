@@ -12,6 +12,10 @@ The evaluation process consists of two main parts:
 1. Setting up the `robotwin` environment and dependencies.
 2. Running the evaluation by launching services in both `starVLA` and `robotwin` environments.
 
+:::note[Why two terminals?]
+Model inference (starVLA environment) and the simulation (robotwin environment) depend on different Python package versions that would conflict if installed in the same conda environment. Running them in separate terminals with separate conda environments avoids this.
+:::
+
 We have verified that this workflow runs successfully on **NVIDIA 4090** GPUs.
 
 ---

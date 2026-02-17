@@ -50,14 +50,18 @@ Afterwards, inside the `LIBERO` environment, install the following dependencies:
 
 ```bash
 pip install tyro matplotlib mediapy websockets msgpack
-pip install numpy==1.24.4
+pip install numpy==1.24.4  # Downgrade numpy for compatibility with the simulation environment
 ```
 
 ---
 
 ### 2. Evaluation Workflow
 
-Run the evaluation **from the starVLA repository root** using **two separate terminals**, one for each environment:
+Run the evaluation **from the starVLA repository root** using **two separate terminals**, one for each environment.
+
+:::note[Why two terminals?]
+Model inference (starVLA environment) and the simulation (LIBERO environment) depend on different Python package versions that would conflict if installed in the same conda environment. Running them in separate terminals with separate conda environments avoids this.
+:::
 
 - **starVLA environment**: runs the inference server.
 - **LIBERO environment**: runs the simulation.

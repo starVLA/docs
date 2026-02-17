@@ -10,9 +10,8 @@ import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
 如果你对以下概念还不熟悉，先花 1 分钟了解一下：
 
 - **VLM（Vision-Language Model，视觉-语言模型）**：能同时理解图像和文字的 AI 模型，例如 Qwen-VL、GPT-4V。
-- **WM（World Model，世界模型）**：能根据当前状态预测未来画面的视频生成模型，通常基于 DiT（Diffusion Transformer）等架构。外界有时也将基于 WM 改造的具身模型称为 **VA（Vision-Action）**。
-- **VLA（Vision-Language-Action Model，视觉-语言-动作模型）**：输入视觉和语言，输出机器人动作（如关节角度）以及可能的其他表征。实现 VLA 有两条路线：从 **VLM 改造**（在语言模型基础上加动作输出）或从 **WM 改造**（在视频生成模型基础上加动作输出）。
-- **StarVLA 做的事**：为上述改造提供全套基础设施（Infra）——数据加载、训练循环、评测部署管线全部可复用，**你只需要专注于模型本身**。不管你是从 VLM 还是 WM 出发，都可以用同一套工具完成训练和评测。
+- **VLA（Vision-Language-Action Model，视觉-语言-动作模型）**：在 VLM 的基础上增加动作输出，让模型不仅能"看"和"说"，还能"做"——输入图像和自然语言指令，输出机器人动作（如关节角度，即机器人每个关节应该转到的角度值）。除了从 VLM 出发，也可以从 **WM（World Model，世界模型）** 出发构建类似的具身模型。
+- **StarVLA 做的事**：就像 PyTorch 之于深度学习——StarVLA 为 VLM→VLA 的改造提供全套基础设施：数据加载、训练循环、评测部署管线全部可复用，**你只需要专注于模型本身**。不管你是从 VLM 还是 WM 出发，都可以用同一套工具完成训练和评测。
 
 ## 环境要求
 
@@ -52,9 +51,11 @@ import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
     pip install -r requirements.txt
 
     # 安装 FlashAttention2（加速 Transformer 推理，必装）
+    # 注意：flash-attn 需要从源码编译，首次安装可能需要 10-20 分钟，这是正常的
     pip install flash-attn --no-build-isolation
 
-    # 以开发模式安装 starVLA
+    # 以开发模式安装 starVLA（-e 表示 editable/开发模式：
+    # 安装后修改代码无需重新安装，改动会立即生效）
     pip install -e .
     ```
 </Steps>
@@ -99,7 +100,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
     ```
 
     :::tip
-    如果下载速度慢，可以设置 HuggingFace 镜像：
+    如果下载速度慢（尤其是在国内网络环境下，直接访问 HuggingFace 可能非常慢或无法连接），可以设置镜像站加速下载：
     ```bash
     export HF_ENDPOINT=https://hf-mirror.com
     ```
@@ -113,10 +114,19 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
     python starVLA/model/framework/QwenGR00T.py
     ```
 
+    :::note
+    首次运行需要加载模型权重，预计耗时 1-2 分钟，请耐心等待。
+    :::
+
     **看到以下输出就说明安装成功了：**
     - 打印出完整的模型结构
     - `model.predict_action(fake_data)` 成功返回动作数组（形状为 `[batch, action_horizon, action_dim]`）
     - 没有报错退出
+
+    :::tip
+    - 运行过程中看到 `WARNING` 日志是正常的（通常来自模型加载时的兼容性提示），只要最终没有报错退出即可。
+    - 如果你有多张 GPU，可以用 `CUDA_VISIBLE_DEVICES=0` 指定使用哪一张，例如：`CUDA_VISIBLE_DEVICES=0 python starVLA/model/framework/QwenGR00T.py`
+    :::
 
     如果遇到 CUDA out of memory，说明显存不够，可以尝试用更小的模型（如 Qwen2.5-VL-3B）。
 </Steps>
@@ -126,8 +136,8 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 安装完成后，你需要了解 StarVLA 的目录结构，后续训练和评测都会用到：
 
 ```
-starVLA/                          # 项目根目录
-├── starVLA/                      # 核心代码包
+starVLA/                          # 项目根目录（git 仓库）
+├── starVLA/                      # 核心代码包（Python 包惯例：外层是项目目录，内层同名目录是实际的包代码）
 │   ├── model/framework/          # 模型定义（QwenOFT.py, QwenGR00T.py 等）
 │   ├── dataloader/               # 数据加载器
 │   ├── training/                 # 训练脚本

@@ -67,6 +67,8 @@ dataset = LeRobotDataset.create(
 )
 
 # 从你的数据中添加帧
+# 假设你的原始数据按 episode（一次完整演示）组织，每个 episode 包含多帧
+# 例如：episodes = [load_hdf5("demo_0.hdf5"), load_hdf5("demo_1.hdf5"), ...]
 for episode in your_episodes:
     for frame in episode:
         dataset.add_frame({
@@ -74,7 +76,9 @@ for episode in your_episodes:
             "action": np.array(frame["action"], dtype=np.float32),
             "observation.images.image": frame["image"],
             "language_instruction": frame["instruction"],
-            "task": frame["instruction"],  # 必须的重复字段
+            # task 字段是 LeRobot 内部用于按任务对 episode 分组的必需字段，
+            # 内容通常和 language_instruction 相同
+            "task": frame["instruction"],
         })
     dataset.save_episode()
 
@@ -108,7 +112,7 @@ your_dataset_name/
 
 ### Modality JSON 文件
 
-在训练目录下创建 `modality.json` 文件，定义 LeRobot 键与 StarVLA 键之间的映射：
+在训练目录下创建 `modality.json` 文件，定义 LeRobot 键与 StarVLA 键之间的映射。你可以把它理解为一个"翻译表"——把数据集中的原始列名翻译成 StarVLA 统一的内部名称，这样不同数据集只要提供各自的 `modality.json`，就能被同一套代码处理：
 
 ```json
 {
@@ -207,7 +211,9 @@ class MyRobotDataConfig:
         return ComposedModalityTransform(transforms=transforms)
 ```
 
-从 DataConfig 中可以注意到 Modality 实现的映射关系。例如某一数据集中包含一个含有 arm, gripper, body, wheel 全部自由度的 state 和 action，Modality 可以从其中切出每段 index 对应的含义（通过 start 以及 end 这两个 key），并且在 DataConfig 中将它们重新拼接组织。
+从 DataConfig 中可以注意到 Modality 实现的映射关系。例如某一数据集中包含一个含有 arm、gripper、body、wheel 全部自由度的 state 和 action，Modality 可以从其中切出每段 index 对应的含义（通过 `start` 以及 `end` 这两个 key），并且在 DataConfig 中将它们重新拼接组织。
+
+**具体例子**：假设你的机器人有一个 7 自由度手臂 + 1 个夹爪，原始数据中 state 是一个 8 维向量 `[j0, j1, j2, j3, j4, j5, j6, gripper]`。在 `modality.json` 中，你可以这样切分：`"arm_joint": {"start": 0, "end": 7}` 取前 7 维（关节角度），`"gripper_joint": {"start": 7, "end": 8}` 取第 8 维（夹爪状态）。这样 StarVLA 就知道哪些维度是手臂、哪些是夹爪，从而可以分别使用不同的归一化策略。
 
 ### 注册配置
 
@@ -233,7 +239,7 @@ ROBOT_TYPE_CONFIG_MAP = {
 | `axis_angle` | 将旋转转换为轴角表示 |
 
 :::tip
-在 StarVLA 比较常见的 Setting 中，我们使用绝对 Joint Position 作为 State 或者 Action 的表征，此时一般来说推荐对于 Arm 使用 `min_max` 并对 Gripper 使用 `binary`。
+在 StarVLA 常见的配置中，我们使用绝对关节位置（absolute joint position）作为状态和动作的表征。此时一般推荐对手臂关节使用 `min_max` 归一化，对夹爪使用 `binary` 归一化。
 :::
 
 ## 步骤三：创建 Data Mix
@@ -336,11 +342,11 @@ datasets:
     dataset_py: lerobot_datasets
     data_root_dir: playground/Datasets/MY_DATA_ROOT  # 数据集根目录
     data_mix: my_dataset            # 在 mixtures.py 中注册的混合名称
-    action_type: abs_qpos           # 动作类型：abs_qpos（绝对关节位置）
+    action_type: abs_qpos           # 动作类型：abs_qpos = absolute joint position（绝对关节位置，即目标角度值）
     default_image_resolution: [3, 224, 224]  # [通道, 高, 宽]
     per_device_batch_size: 16
-    load_all_data_for_training: true
-    obs: ["image_0"]                # 使用哪些相机（image_0 = 第一个相机）
+    load_all_data_for_training: true # 启动时将所有训练数据加载到内存（加快训练速度，但占用更多内存）
+    obs: ["image_0"]                # 使用哪些相机（image_0 对应 DataConfig 中 video_keys 列表的第一个相机）
     image_size: [224,224]
     video_backend: torchvision_av   # 视频解码后端（torchvision_av 或 decord）
 
@@ -402,9 +408,10 @@ trainer:
 ```bash
 #!/bin/bash
 
-# 配置
-config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
-# 以下内容演示如何覆盖 Config
+# ========== 必需参数 ==========
+config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml  # 训练配置文件（必需）
+
+# ========== 可选覆盖参数（命令行优先级高于 YAML 文件中的值）==========
 Framework_name=QwenOFT
 base_vlm=playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
 data_root=playground/Datasets/MY_DATA_ROOT
@@ -418,12 +425,13 @@ mkdir -p ${output_dir}
 cp $0 ${output_dir}/
 
 # 启动训练
+# --config_yaml 是唯一必需的参数，其余 --xxx 参数都是可选的命令行覆盖
+# 如果你已经在 YAML 文件中配置好了所有参数，可以省略下面的覆盖参数
 accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
   --num_processes 8 \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
-  # 以下内容用于演示如何覆盖 Config
   --framework.name ${Framework_name} \
   --framework.qwenvl.base_vlm ${base_vlm} \
   --datasets.vla_data.data_root_dir ${data_root} \

@@ -65,7 +65,7 @@ trainer:
   reload_modules: "action_model"
 ```
 
-`reload_modules` 为空则完整加载。StarVLA 不保存 optimizer state，以降低内存与磁盘开销。
+`reload_modules` 为空则完整加载。StarVLA 基于 Accelerator 的 checkpoint 机制，完整保存并恢复 optimizer state、学习率调度器等训练状态，因此恢复训练后可以无缝继续。
 
 ### 使用更小 VLM 训练
 
@@ -81,7 +81,7 @@ accelerate launch \
   --num_processes=${TOTAL_GPUS} \
   starVLA/training/train_starvla.py \
   --config_yaml ./starVLA/config/training/starvla_cotrain_oxe.yaml \
-  --framework.framework_py QwenGR00T \
+  --framework.name QwenGR00T \
   --framework.qwenvl.base_vlm microsoft/Florence-2-large \
   --run_root_dir ${run_root_dir} \
   --run_id ${run_id} \
@@ -90,3 +90,24 @@ accelerate launch \
 ```
 
 说明：为保证兼容已发布检查点，暂时继续使用 `--framework.qwenvl`，后续版本会统一。
+
+### 我只有 1 张 GPU 能训练吗？
+
+可以。将 `--num_processes` 设为 1，并适当减小 `per_device_batch_size`（如设为 1-2）和增大 `gradient_accumulation_steps` 来补偿。单卡训练速度会慢很多，但功能上完全可行。建议从较小的模型（如 Qwen2.5-VL-3B）开始。
+
+### 训练大概需要多久？
+
+取决于数据集大小、GPU 数量和模型规模。作为参考：
+- **8×A800 + Qwen2.5-VL-3B + Bridge 数据集**：约 10-20 小时训练 50k 步。
+- **1×RTX 4090 + Qwen2.5-VL-3B + 小数据集**：可能需要数天。
+
+建议先用 `is_debug: true` 跑几百步验证流程正确，再进行正式训练。
+
+### 怎么监控训练过程？
+
+StarVLA 支持两种日志方式（在 YAML 配置的 `trackers` 字段中指定）：
+
+- **jsonl**：训练日志以 JSON Lines 格式保存在 checkpoint 目录下的 `log.jsonl` 文件中，可以用脚本解析绘图。
+- **wandb**：实时在线监控。需要在配置中填写 `wandb_entity` 和 `wandb_project`，训练开始后会自动上传 loss 曲线、学习率等指标到 [wandb.ai](https://wandb.ai)。
+
+推荐同时启用两者：`trackers: [jsonl, wandb]`。

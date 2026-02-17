@@ -65,7 +65,7 @@ trainer:
   reload_modules: "action_model"
 ```
 
-An empty `reload_modules` loads the full model. StarVLA does not save optimizer state to reduce memory and disk usage.
+An empty `reload_modules` loads the full model. StarVLA uses Accelerator's checkpoint mechanism to fully save and restore optimizer state, learning rate scheduler, and other training state, so training resumes seamlessly.
 
 ### Train with a smaller VLM
 
@@ -81,7 +81,7 @@ accelerate launch \
   --num_processes=${TOTAL_GPUS} \
   starVLA/training/train_starvla.py \
   --config_yaml ./starVLA/config/training/starvla_cotrain_oxe.yaml \
-  --framework.framework_py QwenGR00T \
+  --framework.name QwenGR00T \
   --framework.qwenvl.base_vlm microsoft/Florence-2-large \
   --run_root_dir ${run_root_dir} \
   --run_id ${run_id} \
@@ -90,3 +90,24 @@ accelerate launch \
 ```
 
 Note: `--framework.qwenvl` will be unified in a future release for compatibility reasons.
+
+### Can I train with just 1 GPU?
+
+Yes. Set `--num_processes` to 1, reduce `per_device_batch_size` (e.g., to 1-2), and increase `gradient_accumulation_steps` to compensate. Single-GPU training will be much slower but is fully functional. We recommend starting with a smaller model (e.g., Qwen2.5-VL-3B).
+
+### How long does training take?
+
+It depends on dataset size, GPU count, and model scale. As a reference:
+- **8xA800 + Qwen2.5-VL-3B + Bridge dataset**: ~10-20 hours for 50k steps.
+- **1xRTX 4090 + Qwen2.5-VL-3B + small dataset**: may take several days.
+
+We recommend running a quick sanity check with `is_debug: true` for a few hundred steps first, then starting full training.
+
+### How do I monitor training?
+
+StarVLA supports two logging methods (specified in the `trackers` field of your YAML config):
+
+- **jsonl**: Training logs are saved as JSON Lines in a `log.jsonl` file in the checkpoint directory. You can parse and plot them with scripts.
+- **wandb**: Real-time online monitoring. Fill in `wandb_entity` and `wandb_project` in your config, and metrics (loss curves, learning rates, etc.) will be automatically uploaded to [wandb.ai](https://wandb.ai) once training starts.
+
+We recommend enabling both: `trackers: [jsonl, wandb]`.

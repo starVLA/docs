@@ -5,13 +5,17 @@ description: StarVLA standardized inference pipeline for real-robot or simulatio
 
 ## Overview
 
-StarVLA standardizes the inference pipeline for real-robot or simulation evaluations by tunneling data through WebSocket, enabling new models to be integrated into existing evaluation environments with minimal changes.
+StarVLA standardizes the inference pipeline for real-robot or simulation evaluations by tunneling data through WebSocket (a network protocol that enables bidirectional real-time communication between client and server), enabling new models to be integrated into existing evaluation environments with minimal changes.
 
 ---
 
 ## Architecture
 
 The StarVLA framework uses a **client-server architecture** to separate the evaluation/deployment environment (client) from the policy server (model inference).
+
+:::note[Why separate client and server?]
+Model inference and simulation/real-robot environments typically depend on different or even conflicting Python package versions (e.g., different numpy or torch versions). By splitting them into two independent processes, each can use its own conda environment without interference. In practice, you'll start the server and client in two separate terminals.
+:::
 
 - **Policy Server**: Loads the model, receives observations, and outputs normalized actions.
 - **Client**: Interfaces with the simulator or real robot, and post-processes model outputs:
@@ -36,6 +40,7 @@ The StarVLA framework uses a **client-server architecture** to separate the eval
 Minimal pseudo-code example (evaluation-side client):
 
 ```python
+# Import path: from deployment.policy_client.policy_client import WebsocketClientPolicy
 import WebsocketClientPolicy
 
 client = WebsocketClientPolicy(
@@ -62,7 +67,9 @@ For the Model Server, simply launch it with:
 #!/bin/bash
 export PYTHONPATH=$(pwd):${PYTHONPATH}
 
-# Point to your StarVLA conda Python (adjust the path for your system)
+# Point to your StarVLA conda Python
+# $(which python) automatically picks up the Python from your currently activated conda env
+# Make sure you've run `conda activate starVLA` before executing this script
 export star_vla_python=$(which python)
 your_ckpt=results/Checkpoints/xxx.pt   # Replace with your checkpoint path
 gpu_id=0
@@ -78,7 +85,7 @@ CUDA_VISIBLE_DEVICES=$gpu_id ${star_vla_python} deployment/model_server/server_p
 ### Notes
 
 - Ensure every field in `example` is JSON-serializable or convertible (lists, floats, ints, strings); convert custom objects explicitly.
-- Images must be sent as `np.ndarray`. Perform `PIL.Image -> np.ndarray` before transmission and convert back on the server (`to_pil_preserve`) if required.
+- Images must be sent as `np.ndarray`. Perform `PIL.Image -> np.ndarray` before transmission and convert back on the server using `to_pil_preserve` (`from starVLA.model.utils import to_pil_preserve`) if required.
 - Keep auxiliary metadata (episode IDs, timestamps, etc.) in dedicated keys so the framework can forward or log them without collisions.
 
 ---

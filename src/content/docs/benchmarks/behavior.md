@@ -14,6 +14,10 @@ The evaluation process consists of two main parts:
 1. Setting up the `behavior` environment and dependencies.
 2. Running the evaluation by launching services in both `starVLA` and `behavior` environments.
 
+:::note[Why two terminals?]
+Model inference (starVLA environment) and the simulation (behavior environment) depend on different Python package versions that would conflict if installed in the same conda environment. Running them in separate terminals with separate conda environments avoids this.
+:::
+
 :::note[GPU Requirements]
 BEHAVIOR's simulator (OmniGibson) requires **hardware ray tracing (RT Cores)** for rendering. The following GPUs **cannot be used**: A100, H100 (they lack RT Cores).
 
@@ -36,6 +40,10 @@ conda create -n behavior python=3.10 -y
 conda activate behavior
 cd BEHAVIOR-1K
 pip install "setuptools<=79"
+# --omnigibson: Install OmniGibson simulator (BEHAVIOR's physics engine)
+# --bddl: Install BDDL (Behavior Domain Definition Language for task definitions)
+# --joylo: Install JoyLo (teleoperation control interface)
+# --dataset: Download BEHAVIOR dataset assets (scenes, object models, etc.)
 ./setup.sh --omnigibson --bddl --joylo --dataset
 conda install -c conda-forge libglu
 pip install rich omegaconf hydra-core msgpack websockets av pandas google-auth

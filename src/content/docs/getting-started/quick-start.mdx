@@ -10,9 +10,8 @@ import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
 If you're new to these concepts, here's a quick primer:
 
 - **VLM (Vision-Language Model)**: An AI model that understands both images and text, such as Qwen-VL or GPT-4V.
-- **WM (World Model)**: A video generation model that predicts future visual frames from the current state, typically based on architectures like DiT (Diffusion Transformer). Embodied models built from WMs are sometimes called **VA (Vision-Action)** models externally.
-- **VLA (Vision-Language-Action Model)**: Takes vision and language as input, outputs robot actions (e.g., joint angles) and potentially other representations. There are two routes to building a VLA: adapting a **VLM** (adding action output to a language model) or adapting a **WM** (adding action output to a video generation model).
-- **What StarVLA does**: Provides the full infrastructure for both routes — data loading, training loops, evaluation, and deployment pipelines are all reusable so **you can focus on the model itself**. Whether you start from a VLM or a WM, you use the same toolkit for training and evaluation.
+- **VLA (Vision-Language-Action Model)**: Extends a VLM with action output, so the model can not only "see" and "speak" but also "act" — it takes images and natural language instructions as input and outputs robot actions (e.g., joint angles — the target angle values for each joint of a robot arm). Besides building from VLMs, VLAs can also be built from **WMs (World Models)** — video generation models that predict future states.
+- **What StarVLA does**: Think of StarVLA as "PyTorch for VLA development" — it provides the full infrastructure for transforming VLMs into VLAs: data loading, training loops, evaluation, and deployment pipelines are all reusable so **you can focus on the model itself**. Whether you start from a VLM or a WM, you use the same toolkit for training and evaluation.
 
 ## Requirements
 
@@ -52,9 +51,11 @@ Only Linux is supported. macOS and Windows are not currently supported due to fl
     pip install -r requirements.txt
 
     # Install FlashAttention2 (required for fast Transformer inference)
+    # Note: flash-attn compiles from source; first-time installation may take 10-20 minutes — this is normal
     pip install flash-attn --no-build-isolation
 
-    # Install starVLA in development mode
+    # Install starVLA in development mode (-e = editable mode:
+    # code changes take effect immediately without reinstalling)
     pip install -e .
     ```
 </Steps>
@@ -106,10 +107,19 @@ Two quick steps to confirm everything works:
     python starVLA/model/framework/QwenGR00T.py
     ```
 
+    :::note
+    The first run needs to load model weights, which takes about 1-2 minutes. Please be patient.
+    :::
+
     **You should see:**
     - The full model structure printed
     - `model.predict_action(fake_data)` returns an action array (shape: `[batch, action_horizon, action_dim]`)
     - No errors
+
+    :::tip
+    - `WARNING` messages during model loading are normal (typically compatibility notices). As long as the script finishes without errors, you're good.
+    - If you have multiple GPUs, use `CUDA_VISIBLE_DEVICES=0` to select which one to use, e.g.: `CUDA_VISIBLE_DEVICES=0 python starVLA/model/framework/QwenGR00T.py`
+    :::
 
     If you get CUDA out of memory, try a smaller model (e.g., Qwen2.5-VL-3B).
 </Steps>
@@ -119,8 +129,8 @@ Two quick steps to confirm everything works:
 After installation, here's the project layout you'll work with:
 
 ```
-starVLA/                          # Project root
-├── starVLA/                      # Core package
+starVLA/                          # Project root (git repository)
+├── starVLA/                      # Core package (Python convention: outer dir is the project, inner same-name dir is the actual package code)
 │   ├── model/framework/          # Model definitions (QwenOFT.py, QwenGR00T.py, etc.)
 │   ├── dataloader/               # Data loading pipelines
 │   ├── training/                 # Training scripts

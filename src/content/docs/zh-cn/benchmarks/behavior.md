@@ -14,6 +14,10 @@ description: 使用 StarVLA 框架运行 BEHAVIOR-1K 基准测试。
 1. 配置 `behavior` 环境与依赖。
 2. 分别在 `starVLA` 与 `behavior` 环境中启动服务并运行评测。
 
+:::note[为什么需要两个终端？]
+模型推理（starVLA 环境）和仿真环境（behavior 环境）各自依赖不同的 Python 包版本，放在同一个 conda 环境中会产生冲突。因此需要分别在两个终端中激活各自的 conda 环境来运行。
+:::
+
 :::note[GPU 要求]
 BEHAVIOR 的仿真器（OmniGibson）依赖**硬件光线追踪（RT Cores）**进行渲染。以下 GPU **不能使用**：A100、H100（它们没有 RT Cores）。
 
@@ -36,6 +40,10 @@ conda create -n behavior python=3.10 -y
 conda activate behavior
 cd BEHAVIOR-1K
 pip install "setuptools<=79"
+# --omnigibson: 安装 OmniGibson 仿真器（BEHAVIOR 的底层物理引擎）
+# --bddl: 安装 BDDL（Behavior Domain Definition Language，任务定义语言）
+# --joylo: 安装 JoyLo（遥操作控制接口）
+# --dataset: 下载 BEHAVIOR 数据集资源（场景、物体模型等）
 ./setup.sh --omnigibson --bddl --joylo --dataset
 conda install -c conda-forge libglu
 pip install rich omegaconf hydra-core msgpack websockets av pandas google-auth

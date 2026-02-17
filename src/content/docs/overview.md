@@ -26,8 +26,8 @@ StarVLA officially provides the Qwen-VL-based StarVLA Model Family with 4 differ
 
 ### Training Strategies
 
-- Single imitation learning.
-- Multimodal multi-task co-training.
+- Single-task imitation learning (learning from human demonstrations — no reward function needed).
+- Multimodal multi-task co-training (training on multiple data sources simultaneously to prevent the model from forgetting previously learned capabilities).
 - **\[Planned\]** Reinforcement learning adaptation.
 
 ### Simulation Benchmarks
@@ -47,7 +47,7 @@ Supported or planned benchmarks:
 
 ### Results & Reports
 
-Results are continuously tracked in a live Overleaf report: https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
+Results are continuously tracked in a live Overleaf report (a continuously updated experimental report PDF with the latest benchmark data and analysis): https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
 
 ## Where to Go Next
 
@@ -74,9 +74,9 @@ Results are continuously tracked in a live Overleaf report: https://www.overleaf
 **Latest Updates**
 
 - **2025/12/25**: Pipelines established for Behavior-1K, RoboTwin 2.0, and CALVIN; looking to share baselines with the community.
-- **2025/12/25**: RoboCasa evaluation support released, achieving SOTA without pretraining. See `examples/Robocasa_tabletop` in the main repo.
+- **2025/12/25**: RoboCasa evaluation support released, achieving SOTA without pretraining. See the [RoboCasa documentation](/benchmarks/robocasa/).
 - **2025/12/15**: Release regression check completed; ongoing updates in the [Daily Development Log](https://github.com/starVLA/starVLA/issues/64#issue-3727060165).
-- **2025/12/09**: Open-source training for VLM, VLA, and VLA+VLM co-training. See `examples/CoTrainVLM`.
+- **2025/12/09**: Open-source training for VLM, VLA, and VLA+VLM co-training. See the [VLM co-training documentation](/training/cotrain-vlm/).
 - **2025/11/12**: Florence-2 support added for resource-constrained VLM training (single A100). See [Lego-like Design](/design/lego-like/) for workflow notes.
 - **2025/10/30**: LIBERO training and evaluation guides released.
 - **2025/10/25**: Script links and packaging polished based on community feedback.

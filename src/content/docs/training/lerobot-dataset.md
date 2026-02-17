@@ -67,6 +67,9 @@ dataset = LeRobotDataset.create(
 )
 
 # Add frames from your data
+# Assume your raw data is organized by episode (one complete demonstration),
+# each containing multiple frames.
+# e.g.: episodes = [load_hdf5("demo_0.hdf5"), load_hdf5("demo_1.hdf5"), ...]
 for episode in your_episodes:
     for frame in episode:
         dataset.add_frame({
@@ -74,7 +77,9 @@ for episode in your_episodes:
             "action": np.array(frame["action"], dtype=np.float32),
             "observation.images.image": frame["image"],
             "language_instruction": frame["instruction"],
-            "task": frame["instruction"],  # Required duplicate
+            # `task` is a required field used internally by LeRobot for grouping
+            # episodes by task; its content is usually the same as language_instruction
+            "task": frame["instruction"],
         })
     dataset.save_episode()
 
@@ -108,7 +113,7 @@ your_dataset_name/
 
 ### Modality JSON File
 
-Create a `modality.json` file in your training directory to define the mapping between LeRobot keys and StarVLA keys:
+Create a `modality.json` file in your training directory to define the mapping between LeRobot keys and StarVLA keys. Think of it as a "translation table" — it translates the raw column names in your dataset into StarVLA's unified internal names, so different datasets can be processed by the same code simply by providing their own `modality.json`:
 
 ```json
 {
@@ -208,6 +213,8 @@ class MyRobotDataConfig:
 ```
 
 Note the mapping relationship implemented by Modality in the DataConfig. For example, if a dataset contains state and action with all degrees of freedom including arm, gripper, body, and wheel, Modality can slice out the meaning of each index range (via the `start` and `end` keys), and then reassemble and organize them in the DataConfig.
+
+**Concrete example**: Suppose your robot has a 7-DOF arm + 1 gripper, and the raw state is an 8-dimensional vector `[j0, j1, j2, j3, j4, j5, j6, gripper]`. In `modality.json`, you split it as: `"arm_joint": {"start": 0, "end": 7}` for the first 7 dims (joint angles) and `"gripper_joint": {"start": 7, "end": 8}` for the 8th dim (gripper state). This lets StarVLA know which dimensions are arm joints and which are gripper, enabling different normalization strategies for each.
 
 ### Register the Config
 
@@ -336,11 +343,11 @@ datasets:
     dataset_py: lerobot_datasets
     data_root_dir: playground/Datasets/MY_DATA_ROOT  # Dataset root directory
     data_mix: my_dataset            # Mixture name registered in mixtures.py
-    action_type: abs_qpos           # Action type: abs_qpos (absolute joint positions)
+    action_type: abs_qpos           # Action type: abs_qpos = absolute joint position (target angle values)
     default_image_resolution: [3, 224, 224]  # [channels, height, width]
     per_device_batch_size: 16
-    load_all_data_for_training: true
-    obs: ["image_0"]                # Which cameras to use (image_0 = first camera)
+    load_all_data_for_training: true # Load all training data into memory at startup (faster training, but uses more RAM)
+    obs: ["image_0"]                # Which cameras to use (image_0 = first camera in DataConfig's video_keys list)
     image_size: [224,224]
     video_backend: torchvision_av   # Video decode backend (torchvision_av or decord)
 
@@ -402,9 +409,10 @@ Create a training script (e.g., `examples/MyRobot/train_files/run_train.sh`):
 ```bash
 #!/bin/bash
 
-# Configuration
-config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml
-# The following demonstrates how to override config values
+# ========== Required parameter ==========
+config_yaml=./examples/MyRobot/train_files/starvla_my_robot.yaml  # Training config file (required)
+
+# ========== Optional overrides (CLI takes priority over YAML values) ==========
 Framework_name=QwenOFT
 base_vlm=playground/Pretrained_models/Qwen2.5-VL-3B-Instruct
 data_root=playground/Datasets/MY_DATA_ROOT
@@ -418,12 +426,13 @@ mkdir -p ${output_dir}
 cp $0 ${output_dir}/
 
 # Launch training
+# --config_yaml is the only required argument; all other --xxx flags are optional CLI overrides.
+# If you've already configured everything in your YAML file, you can omit the override flags below.
 accelerate launch \
   --config_file starVLA/config/deepseeds/deepspeed_zero2.yaml \
   --num_processes 8 \
   starVLA/training/train_starvla.py \
   --config_yaml ${config_yaml} \
-  # The following demonstrates how to override config values
   --framework.name ${Framework_name} \
   --framework.qwenvl.base_vlm ${base_vlm} \
   --datasets.vla_data.data_root_dir ${data_root} \

@@ -27,7 +27,7 @@ Afterwards, inside the `simpler_env` environment, install the following dependen
 ```bash
 conda activate simpler_env
 pip install tyro matplotlib mediapy websockets msgpack
-pip install numpy==1.24.4
+pip install numpy==1.24.4  # Downgrade numpy for compatibility with the simulation environment
 ```
 
 **Common Issues:**
@@ -49,7 +49,11 @@ If you see the "✅ Env built successfully" message, it means SimplerEnv is inst
 
 ### 2. Evaluation Workflow
 
-Run the evaluation **from the starVLA repository root** using **two separate terminals**, one for each environment:
+Run the evaluation **from the starVLA repository root** using **two separate terminals**, one for each environment.
+
+:::note[Why two terminals?]
+Model inference (starVLA environment) and the simulation (simpler_env environment) depend on different Python package versions that would conflict if installed in the same conda environment. Running them in separate terminals with separate conda environments avoids this.
+:::
 
 - **starVLA environment**: runs the policy inference server.
 - **simpler_env environment**: runs the simulation eval code.
@@ -66,7 +70,7 @@ In the first terminal, activate the `starVLA` conda environment and run:
 bash examples/SimplerEnv/eval_files/run_policy_server.sh
 ```
 
-**Note:** Please ensure that you specify the correct checkpoint path in `run_policy_server.sh`
+**Note:** Open `examples/SimplerEnv/eval_files/run_policy_server.sh`, find the `your_ckpt` variable, and set it to your actual checkpoint path, e.g. `results/Checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_50000_pytorch_model.pt`.
 
 ---
 
@@ -81,10 +85,14 @@ bash examples/SimplerEnv/start_simpler_env.sh ${MODEL_PATH}
 
 This script will automatically launch the WidowX Robot evaluation tasks, reproducing the benchmark results reported above.
 
-**Note:** Please ensure that you specify the correct `SimplerEnv_PATH` in `start_simpler_env.sh`
+**Note:** Open `examples/SimplerEnv/start_simpler_env.sh`, find the `SimplerEnv_PATH` variable, and set it to your SimplerEnv repo clone path (e.g. `/path/to/SimplerEnv`).
 
 **Common Issues:**
-When running policy server but getting `NotImplementedError: Framework QwenGR00T is not implemented`, you may need to run `python QwenGR00T.py` to check your environment.
+If you encounter `NotImplementedError: Framework QwenGR00T is not implemented` when running the policy server, this usually means the Framework hasn't been properly registered in Python's import path. Run the smoke test first to trigger correct registration:
+```bash
+python starVLA/model/framework/QwenGR00T.py
+```
+If the smoke test passes, restart the policy server.
 
 ---
 

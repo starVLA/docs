@@ -12,6 +12,10 @@ description: 复现 StarVLA 在 RoboTwin 2.0 基准测试上的实验结果。
 1. 配置 `robotwin` 环境与依赖。
 2. 分别在 `starVLA` 与 `robotwin` 环境中启动服务并运行评测。
 
+:::note[为什么需要两个终端？]
+模型推理（starVLA 环境）和仿真环境（robotwin 环境）各自依赖不同的 Python 包版本，放在同一个 conda 环境中会产生冲突。因此需要分别在两个终端中激活各自的 conda 环境来运行。
+:::
+
 我们已在 **NVIDIA 4090** 上验证该流程可稳定运行。
 
 ---

@@ -5,7 +5,7 @@ description: 整合 VLM（视觉语言模型）数据来联合训练 StarVLA 框
 
 本指南介绍如何整合 VLM（Vision-Language Model）数据来联合训练 StarVLA（Vision-Language-Action）框架。
 
-**为什么要联合训练？** 纯粹用机器人操作数据训练 VLA 时，VLM 骨干的视觉和语言理解能力可能会退化（"灾难性遗忘"）。混入 VLM 数据（图文问答、描述等）可以保持模型的通用理解能力，同时学习机器人操作。
+**为什么要联合训练？** 纯粹用机器人操作数据训练 VLA 时，VLM 骨干的视觉和语言理解能力可能会退化——这就是所谓的"灾难性遗忘"：只喂机器人数据训练后，模型可能忘了怎么看图说话、理解复杂指令。混入 VLM 数据（图文问答、描述等）可以保持模型的通用理解能力，同时学习机器人操作。
 
 ---
 
@@ -24,6 +24,8 @@ VLM 数据必须遵循 [QwenVL Conversations JSON 数据结构](https://github.c
         {
             "from": "human",
             "value": "<image>\nWhat's the main object in this picture?"
+            // <image> 是占位符，告诉模型"这里要插入图片"，
+            // 实际图片路径由外层的 "image" 字段指定
         },
         {
             "from": "gpt",
@@ -61,6 +63,10 @@ VLM 数据必须遵循 [QwenVL Conversations JSON 数据结构](https://github.c
 
 ```python
 # 注册示例
+# json_root 和 image_root 在文件顶部定义，
+# 默认指向 playground/Datasets/LLaVA-OneVision-COCO/ 下的子目录：
+#   json_root = "playground/Datasets/LLaVA-OneVision-COCO/llava_jsons"
+#   image_root = "playground/Datasets/LLaVA-OneVision-COCO/images"
 
 SHAREGPT4V_COCO = {
     "annotation_path": f"{json_root}/sharegpt4v_coco.json",
@@ -95,6 +101,11 @@ python starVLA/dataloader/vlm_datasets.py --config_yaml your_train_config.yaml
 ## 3. 训练执行
 
 根据你是想*仅*使用 VLM 数据训练还是与 VLA 数据*联合训练*，选择相应的脚本。
+
+:::tip[如何选择？]
+- **如果你只想做 VLM 微调**（例如在特定领域的图文数据上微调，不涉及机器人动作），选择**选项 A**。
+- **如果你同时有机器人数据想一起训练**（防止灾难性遗忘，让模型既能操作机器人又保持视觉语言理解），选择**选项 B**。
+:::
 
 ### 选项 A：仅使用 VLM 数据训练
 
