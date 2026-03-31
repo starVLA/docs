@@ -52,9 +52,9 @@ StarVLA 官方提供了基于 Qwen-VL 的 StarVLA Model Family，包含 4 种不
 
 ## 下一步
 
-- 先阅读 [快速开始](/zh-cn/getting-started/quick-start/) 完成环境搭建与验证。
-- 在 [乐高式设计](/zh-cn/design/lego-like/) 了解核心设计理念。
-- 在 [模型库](/zh-cn/model-zoo/) 查看已发布模型与检查点。
+- 先阅读 [快速开始](/docs/zh-cn/getting-started/quick-start/) 完成环境搭建与验证。
+- 在 [乐高式设计](/docs/zh-cn/design/lego-like/) 了解核心设计理念。
+- 在 [模型库](/docs/zh-cn/model-zoo/) 查看已发布模型与检查点。
 
 
 ## 社区与链接
@@ -76,9 +76,9 @@ StarVLA 官方提供了基于 Qwen-VL 的 StarVLA Model Family，包含 4 种不
 **最新动态**
 
 - **2025/12/25**：建立 Behavior-1K、RoboTwin 2.0 与 CALVIN 的流水线，期待与社区共享基线。
-- **2025/12/25**：发布 RoboCasa 评测支持，无预训练即可达到 SOTA，详见 [RoboCasa 文档](/zh-cn/benchmarks/robocasa/)。
+- **2025/12/25**：发布 RoboCasa 评测支持，无预训练即可达到 SOTA，详见 [RoboCasa 文档](/docs/zh-cn/benchmarks/robocasa/)。
 - **2025/12/15**：完成回归测试，持续更新见 [Daily Development Log](https://github.com/starVLA/starVLA/issues/64#issue-3727060165)。
-- **2025/12/09**：支持训练 VLM、VLA 与 VLA+VLM 协同训练，见 [VLM 联合训练文档](/zh-cn/training/cotrain-vlm/)。
-- **2025/11/12**：新增 Florence-2 支持，可在单张 A100 上训练，详见 [乐高式设计](/zh-cn/design/lego-like/)。
+- **2025/12/09**：支持训练 VLM、VLA 与 VLA+VLM 协同训练，见 [VLM 联合训练文档](/docs/zh-cn/training/cotrain-vlm/)。
+- **2025/11/12**：新增 Florence-2 支持，可在单张 A100 上训练，详见 [乐高式设计](/docs/zh-cn/design/lego-like/)。
 - **2025/10/30**：发布 LIBERO 训练与评测指南。
 - **2025/10/25**：修复脚本链接与打包流程，感谢社区反馈。

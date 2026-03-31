@@ -28,11 +28,11 @@ Bridge is a WidowX tabletop manipulation dataset; Fractal is Google's RT-1 robot
 | **Qwen3VL-GR00T-Bridge-RT-1** | QwenGR00T | Qwen3-VL-4B | Bridge + Fractal | 65.3 | [HF](https://huggingface.co/StarVLA/Qwen3VL-GR00T-Bridge-RT-1) |
 | **Florence-GR00T-Bridge-RT-1** | QwenGR00T | Florence-2 | Bridge + Fractal (small model) | - | [HF](https://huggingface.co/StarVLA/Florence-GR00T-Bridge-RT-1) |
 
-**WidowX column**: Success rate (%) on WidowX robot tasks in [SimplerEnv](/benchmarks/simplerenv/). Higher is better.
+**WidowX column**: Success rate (%) on WidowX robot tasks in [SimplerEnv](/docs/benchmarks/simplerenv/). Higher is better.
 
 ### LIBERO
 
-LIBERO has 4 task suites (Spatial, Object, Goal, Long Horizon) with 40 tasks total. All checkpoints are trained jointly on all 4 suites. See [LIBERO evaluation docs](/benchmarks/libero/).
+LIBERO has 4 task suites (Spatial, Object, Goal, Long Horizon) with 40 tasks total. All checkpoints are trained jointly on all 4 suites. See [LIBERO evaluation docs](/docs/benchmarks/libero/).
 
 | Model | Framework | Base VLM | Link |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ LIBERO has 4 task suites (Spatial, Object, Goal, Long Horizon) with 40 tasks tot
 
 ### RoboCasa
 
-RoboCasa GR1 Tabletop Tasks with 24 Pick-and-Place tasks. See [RoboCasa evaluation docs](/benchmarks/robocasa/).
+RoboCasa GR1 Tabletop Tasks with 24 Pick-and-Place tasks. See [RoboCasa evaluation docs](/docs/benchmarks/robocasa/).
 
 | Model | Framework | Base VLM | Link |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ RoboCasa GR1 Tabletop Tasks with 24 Pick-and-Place tasks. See [RoboCasa evaluati
 
 ### RoboTwin
 
-RoboTwin 2.0 dual-arm manipulation benchmark with 50 tasks. See [RoboTwin evaluation docs](/benchmarks/robotwin/).
+RoboTwin 2.0 dual-arm manipulation benchmark with 50 tasks. See [RoboTwin evaluation docs](/docs/benchmarks/robotwin/).
 
 | Model | Framework | Base VLM | Link |
 | --- | --- | --- | --- |
@@ -62,7 +62,7 @@ RoboTwin 2.0 dual-arm manipulation benchmark with 50 tasks. See [RoboTwin evalua
 
 ### BEHAVIOR-1K
 
-BEHAVIOR-1K household task benchmark using R1Pro humanoid robot. See [BEHAVIOR evaluation docs](/benchmarks/behavior/).
+BEHAVIOR-1K household task benchmark using R1Pro humanoid robot. See [BEHAVIOR evaluation docs](/docs/benchmarks/behavior/).
 
 | Model | Description | Link |
 | --- | --- | --- |
@@ -120,4 +120,4 @@ python deployment/model_server/server_policy.py \
     --use_bf16
 ```
 
-Then follow the evaluation guide for the benchmark you want to test on (e.g. [SimplerEnv](/benchmarks/simplerenv/), [LIBERO](/benchmarks/libero/), [RoboCasa](/benchmarks/robocasa/), [RoboTwin](/benchmarks/robotwin/), [BEHAVIOR](/benchmarks/behavior/)).
+Then follow the evaluation guide for the benchmark you want to test on (e.g. [SimplerEnv](/docs/benchmarks/simplerenv/), [LIBERO](/docs/benchmarks/libero/), [RoboCasa](/docs/benchmarks/robocasa/), [RoboTwin](/docs/benchmarks/robotwin/), [BEHAVIOR](/docs/benchmarks/behavior/)).

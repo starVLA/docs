@@ -1,6 +1,6 @@
-# starVLA.github.io Docs
+# StarVLA Docs
 
-This repo builds and deploys the documentation site for `starVLA.github.io` using Astro + Starlight.
+This repo builds and deploys the documentation site for `starVLA/docs` using Astro + Starlight.
 
 ## Quick Start (for non-frontend contributors)
 
