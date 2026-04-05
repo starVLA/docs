@@ -1,0 +1,476 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+/* =============================================
+   Dark mode colors (Starlight default)
+   ============================================= */
+:root {
+	--sl-font: 'IBM Plex Sans', 'Noto Sans SC';
+	--sl-font-mono: 'JetBrains Mono';
+
+	--sl-color-white: #e2ecff;
+	--sl-color-gray-1: #c0d4f5;
+	--sl-color-gray-2: #9eb4d8;
+	--sl-color-gray-3: #6b82ad;
+	--sl-color-gray-4: #3d567e;
+	--sl-color-gray-5: #23365f;
+	--sl-color-gray-6: #0f1a32;
+	--sl-color-black: #070d1b;
+
+	--sl-color-accent-low: #0c2044;
+	--sl-color-accent: #59a5ff;
+	--sl-color-accent-high: #b8d9ff;
+
+	--sl-color-bg-sidebar: #0b1527;
+	--sl-color-bg-nav: #0b1527;
+
+	/* Aside palette - blue-tinted */
+	--sl-hue-blue: 213;
+	--sl-color-blue-low: hsl(213, 55%, 14%);
+	--sl-color-blue: hsl(213, 100%, 68%);
+	--sl-color-blue-high: hsl(213, 100%, 86%);
+	--sl-hue-purple: 260;
+	--sl-color-purple-low: hsl(260, 45%, 16%);
+	--sl-color-purple: hsl(260, 78%, 68%);
+	--sl-color-purple-high: hsl(260, 78%, 86%);
+	--sl-hue-orange: 38;
+	--sl-color-orange-low: hsl(38, 50%, 16%);
+	--sl-color-orange: hsl(38, 90%, 62%);
+	--sl-color-orange-high: hsl(38, 90%, 86%);
+	--sl-hue-green: 152;
+	--sl-color-green-low: hsl(152, 45%, 14%);
+	--sl-color-green: hsl(152, 70%, 56%);
+	--sl-color-green-high: hsl(152, 70%, 82%);
+	--sl-hue-red: 350;
+	--sl-color-red-low: hsl(350, 45%, 16%);
+	--sl-color-red: hsl(350, 78%, 62%);
+	--sl-color-red-high: hsl(350, 78%, 86%);
+}
+
+/* =============================================
+   Light mode colors
+   ============================================= */
+:root[data-theme='light'] {
+	--sl-color-white: #0f172a;
+	--sl-color-gray-1: #1e293b;
+	--sl-color-gray-2: #334155;
+	--sl-color-gray-3: #475569;
+	--sl-color-gray-4: #7891b5;
+	--sl-color-gray-5: #c7d7f6;
+	--sl-color-gray-6: #ebf2ff;
+	--sl-color-gray-7: #f6f9ff;
+	--sl-color-black: #ffffff;
+
+	--sl-color-accent-low: #dceaff;
+	--sl-color-accent: #1f8bff;
+	--sl-color-accent-high: #0c5eb8;
+
+	--sl-color-bg-sidebar: #f0f5ff;
+	--sl-color-bg-nav: #f6f9ff;
+
+	--sl-color-blue-low: hsl(213, 85%, 92%);
+	--sl-color-blue: hsl(213, 90%, 52%);
+	--sl-color-blue-high: hsl(213, 80%, 30%);
+	--sl-color-purple-low: hsl(260, 70%, 93%);
+	--sl-color-purple: hsl(260, 80%, 58%);
+	--sl-color-purple-high: hsl(260, 80%, 32%);
+	--sl-color-orange-low: hsl(38, 85%, 90%);
+	--sl-color-orange: hsl(38, 92%, 52%);
+	--sl-color-orange-high: hsl(38, 80%, 28%);
+	--sl-color-green-low: hsl(152, 65%, 90%);
+	--sl-color-green: hsl(152, 70%, 38%);
+	--sl-color-green-high: hsl(152, 65%, 22%);
+	--sl-color-red-low: hsl(350, 75%, 93%);
+	--sl-color-red: hsl(350, 80%, 55%);
+	--sl-color-red-high: hsl(350, 70%, 30%);
+}
+
+/* =============================================
+   Smooth global transitions
+   ============================================= */
+html {
+	scroll-behavior: smooth;
+}
+
+/* =============================================
+   Heading typography — Space Grotesk
+   ============================================= */
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+	letter-spacing: -0.02em;
+}
+
+/* Site title in nav */
+.site-title {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+	font-weight: 700;
+}
+
+/* Logo icon */
+.site-title img {
+	height: 1.6rem;
+	width: auto;
+}
+
+/* =============================================
+   Dotted background pattern
+   ============================================= */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.2;
+	background-image: radial-gradient(circle, rgba(100, 136, 205, 0.2) 1px, transparent 1px);
+	background-size: 22px 22px;
+	z-index: -1;
+}
+
+/* Subtle radial gradient glow */
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: -2;
+	background:
+		radial-gradient(ellipse at 10% 0%, rgba(31, 139, 255, 0.1), transparent 50%),
+		radial-gradient(ellipse at 90% 15%, rgba(255, 191, 63, 0.06), transparent 45%);
+}
+
+:root[data-theme='light'] body::after {
+	background:
+		radial-gradient(ellipse at 10% 0%, rgba(31, 139, 255, 0.12), transparent 50%),
+		radial-gradient(ellipse at 90% 15%, rgba(255, 191, 63, 0.1), transparent 45%);
+}
+
+/* =============================================
+   Navigation — glassmorphism
+   Use header element selector to avoid hitting
+   code block figcaption.header
+   ============================================= */
+header.header {
+	backdrop-filter: blur(12px) !important;
+	-webkit-backdrop-filter: blur(12px) !important;
+	border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent) !important;
+}
+
+:root:not([data-theme='light']) header.header {
+	background-color: rgba(11, 21, 39, 0.82) !important;
+}
+
+:root[data-theme='light'] header.header {
+	background-color: rgba(246, 249, 255, 0.82) !important;
+}
+
+/* =============================================
+   Sidebar
+   ============================================= */
+.sidebar-pane {
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+@media (min-width: 50em) {
+	.sidebar-pane {
+		border-inline-end: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 50%, transparent);
+	}
+}
+
+/* Sidebar active link — pill style */
+[aria-current='page'] {
+	border-radius: 0.45rem !important;
+}
+
+/* Sidebar group labels */
+.top-level > li > details > summary,
+.top-level > li > .large {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+}
+
+/* =============================================
+   Hero section (splash page)
+   ============================================= */
+.hero {
+	padding-block: clamp(3rem, calc(2rem + 8vmin), 8rem) !important;
+}
+
+.hero > .stack {
+	gap: clamp(1.8rem, calc(1.5rem + 1.5vw), 2.5rem);
+}
+
+.hero h1 {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+	letter-spacing: -0.03em;
+	font-weight: 700;
+	background: linear-gradient(135deg, var(--sl-color-white) 0%, var(--sl-color-accent) 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.hero .tagline {
+	max-width: 55ch;
+	font-size: clamp(var(--sl-text-base), calc(0.125rem + 2vw), var(--sl-text-lg));
+	line-height: 1.7;
+}
+
+/* Hero CTA buttons */
+.hero .actions a[href] {
+	border-radius: 0.8rem;
+	font-weight: 700;
+	font-size: 0.94rem;
+	padding: 0.65rem 1.2rem;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero .actions a[href]:hover {
+	transform: translateY(-2px);
+}
+
+/* Primary CTA — gradient button */
+.hero .actions a.primary {
+	background: linear-gradient(128deg, #1f8bff, #22c7d5) !important;
+	border: none !important;
+	color: #fff !important;
+	box-shadow: 0 12px 28px rgba(31, 139, 255, 0.3);
+}
+
+.hero .actions a.primary:hover {
+	box-shadow: 0 16px 36px rgba(31, 139, 255, 0.4);
+}
+
+/* Secondary CTA */
+.hero .actions a.secondary {
+	border: 1px solid var(--sl-color-gray-5) !important;
+	background: var(--sl-color-black) !important;
+}
+
+/* Minimal CTA */
+.hero .actions a.minimal {
+	color: var(--sl-color-accent);
+}
+
+/* =============================================
+   Cards
+   ============================================= */
+.card {
+	border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 80%, transparent) !important;
+	border-radius: 1rem !important;
+	background-color: var(--sl-color-black) !important;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+	transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+	border-color: color-mix(in srgb, var(--sl-color-accent) 40%, var(--sl-color-gray-5)) !important;
+}
+
+:root:not([data-theme='light']) .card:hover {
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+.card .title {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+}
+
+/* Card icon — brand-tinted background */
+.card .icon {
+	border-radius: 0.5rem !important;
+	border-color: color-mix(in srgb, var(--sl-card-border) 50%, transparent) !important;
+}
+
+/* Card grid — larger gap */
+.card-grid {
+	gap: 1.2rem !important;
+}
+
+@media (min-width: 50em) {
+	.card-grid {
+		gap: 1.5rem !important;
+	}
+}
+
+/* =============================================
+   Aside / callout boxes
+   ============================================= */
+.starlight-aside {
+	border-radius: 0.85rem;
+	border-inline-start-width: 3px;
+	padding: 1.1rem 1.2rem;
+}
+
+.starlight-aside__title {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+}
+
+/* =============================================
+   Inline code
+   ============================================= */
+.sl-markdown-content code:not(:where(.not-content *)) {
+	border-radius: 0.4rem;
+	padding: 0.15rem 0.45rem;
+	font-size: 0.875em;
+}
+
+/* =============================================
+   Code blocks — override expressive-code vars
+   ============================================= */
+.sl-markdown-content pre:not(:where(.not-content *)) {
+	border-radius: 0.85rem;
+}
+
+:root {
+	--ec-brdRad: 0.85rem;
+}
+
+/* =============================================
+   Tables — matching starVLA-web style
+   ============================================= */
+.sl-markdown-content table:not(:where(.not-content *)) {
+	display: table;
+	width: 100%;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.8rem;
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+}
+
+.sl-markdown-content th:not(:where(.not-content *)) {
+	font-family: 'Space Grotesk', 'Noto Sans SC', var(--sl-font-system);
+	background: color-mix(in srgb, var(--sl-color-accent) 8%, var(--sl-color-black));
+}
+
+.sl-markdown-content :is(th:first-child, td:first-child):not(:where(.not-content *)) {
+	padding-inline-start: 1rem;
+}
+
+.sl-markdown-content :is(th:last-child, td:last-child):not(:where(.not-content *)) {
+	padding-inline-end: 1rem;
+}
+
+/* =============================================
+   Blockquote
+   ============================================= */
+.sl-markdown-content blockquote:not(:where(.not-content *)) {
+	border-inline-start: 3px solid var(--sl-color-accent);
+	background: color-mix(in srgb, var(--sl-color-accent) 4%, transparent);
+	border-radius: 0 0.5rem 0.5rem 0;
+	padding: 0.8rem 1.2rem;
+}
+
+/* =============================================
+   Search button
+   ============================================= */
+@media (min-width: 50em) {
+	button[data-open-modal] {
+		border-radius: 0.65rem !important;
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+	}
+
+	button[data-open-modal]:hover {
+		border-color: color-mix(in srgb, var(--sl-color-accent) 50%, var(--sl-color-gray-5)) !important;
+	}
+
+	button[data-open-modal] > kbd {
+		border-radius: 0.35rem;
+	}
+}
+
+/* Search dialog */
+dialog {
+	border-radius: 0.85rem !important;
+}
+
+/* =============================================
+   Pagination (prev/next links)
+   ============================================= */
+.pagination-links a {
+	border-radius: 0.85rem !important;
+	border-color: color-mix(in srgb, var(--sl-color-gray-5) 70%, transparent) !important;
+	transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pagination-links a:hover {
+	transform: translateY(-2px);
+	border-color: color-mix(in srgb, var(--sl-color-accent) 40%, var(--sl-color-gray-5)) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+:root:not([data-theme='light']) .pagination-links a:hover {
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* =============================================
+   Table of contents (right sidebar)
+   ============================================= */
+starlight-toc a {
+	transition: color 0.15s ease;
+}
+
+/* =============================================
+   Mobile menu button
+   ============================================= */
+starlight-menu-button button {
+	border-radius: 0.5rem;
+}
+
+/* =============================================
+   Footer
+   ============================================= */
+.meta {
+	border-top-color: color-mix(in srgb, var(--sl-color-gray-5) 50%, transparent);
+}
+
+/* =============================================
+   Scrollbar (subtle brand-tinted)
+   ============================================= */
+:root:not([data-theme='light']) {
+	scrollbar-color: #1e3a6a #070d1b;
+}
+
+:root[data-theme='light'] {
+	scrollbar-color: #b0c8ec #f6f9ff;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+:root:not([data-theme='light']) *::-webkit-scrollbar-thumb {
+	background: #1e3a6a;
+	border-radius: 4px;
+}
+
+:root[data-theme='light'] *::-webkit-scrollbar-thumb {
+	background: #b0c8ec;
+	border-radius: 4px;
+}
+
+/* =============================================
+   Selection color
+   ============================================= */
+::selection {
+	background: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+	color: var(--sl-color-white);
+}
+
+/* =============================================
+   HR
+   ============================================= */
+.sl-markdown-content hr:not(:where(.not-content *)) {
+	border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent);
+}
