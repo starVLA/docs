@@ -264,11 +264,11 @@ header.header {
 	border-radius: 1rem !important;
 	background-color: var(--sl-color-black) !important;
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-	transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+	transition: translate 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .card:hover {
-	transform: translateY(-3px);
+	translate: 0 -3px;
 	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
 	border-color: color-mix(in srgb, var(--sl-color-accent) 40%, var(--sl-color-gray-5)) !important;
 }
