@@ -1,0 +1,51 @@
+---
+title: StarVLA 문서
+description: VLM에서 VLA로의 개발을 위한 레고 블록 방식의 코드베이스로, 모듈형 프레임워크, 벤치마크 및 학습 레시피를 제공합니다.
+template: splash
+hero:
+  tagline: 모듈형이고 확장 가능한 코드베이스로 Vision-Language-Action 모델을 구축, 학습 및 평가합니다.
+  actions:
+    - text: 빠른 시작
+      link: /docs/ko/getting-started/quick-start/
+    - text: 모델 저장소
+      link: /docs/ko/model-zoo/
+    - text: GitHub
+      link: https://github.com/starVLA/starVLA
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## StarVLA란 무엇인가요?
+
+StarVLA는 Vision-Language Model(VLM)을 Vision-Language-Action(VLA) 모델로 개발하기 위한 모듈형 코드베이스입니다. 모델, 데이터, 트레이너, 설정, 평가 등 각 구성 요소가 높은 응집도와 낮은 결합도를 갖도록 설계되어, 플러그 앤 플레이 방식의 연구와 빠른 반복 실험이 가능합니다.
+
+## 문서 한눈에 보기
+
+<CardGrid stagger>
+  <Card title="🚀 빠른 시작" icon="rocket">
+    환경 설정, 빠른 검증, 평가 및 학습 워크플로우를 다룹니다.
+
+    [시작하기 →](/docs/ko/getting-started/quick-start/)
+  </Card>
+  <Card title="📖 프로젝트 개요" icon="document">
+    StarVLA의 정의, 현재 지원 기능 및 주요 링크를 소개합니다.
+
+    [개요 보기 →](/docs/ko/overview/)
+  </Card>
+  <Card title="🧩 레고 블록 설계" icon="puzzle">
+    StarVLA의 모듈형 설계 원칙을 설명합니다.
+
+    [설계 보기 →](/docs/ko/design/lego-like/)
+  </Card>
+  <Card title="🤖 모델 저장소" icon="add-document">
+    공개된 모델 및 파인튜닝 체크포인트를 확인합니다.
+
+    [모델 저장소 보기 →](/docs/ko/model-zoo/)
+  </Card>
+  <Card title="📚 자주 묻는 질문" icon="open-book">
+    설정, 백본 모델, 학습에 관한 일반적인 질문과 답변입니다.
+
+    [FAQ 보기 →](/docs/ko/faq/)
+  </Card>
+</CardGrid>

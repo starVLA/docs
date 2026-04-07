@@ -1,0 +1,51 @@
+---
+title: Documentation StarVLA
+description: Un codebase modulaire pour le developpement VLM-vers-VLA, avec des frameworks, des benchmarks et des recettes d'entrainement.
+template: splash
+hero:
+  tagline: Construisez, entrainez et evaluez des modeles Vision-Langage-Action avec un codebase modulaire et extensible.
+  actions:
+    - text: Demarrage rapide
+      link: /docs/fr/getting-started/quick-start/
+    - text: Model Zoo
+      link: /docs/fr/model-zoo/
+    - text: GitHub
+      link: https://github.com/starVLA/starVLA
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Qu'est-ce que StarVLA ?
+
+StarVLA est un codebase modulaire et flexible pour transformer des modeles de Vision-Langage (VLM) en modeles de Vision-Langage-Action (VLA). Chaque composant (modele, donnees, entraineur, configuration, evaluation) est concu pour une forte cohesion et un faible couplage, permettant une recherche plug-and-play et une iteration rapide.
+
+## Apercu de la documentation
+
+<CardGrid stagger>
+  <Card title="🚀 Demarrage rapide" icon="rocket">
+    Configuration de l'environnement, verifications rapides, evaluation et workflows d'entrainement.
+
+    [Commencer →](/docs/fr/getting-started/quick-start/)
+  </Card>
+  <Card title="📖 Vue d'ensemble du projet" icon="document">
+    Ce qu'est StarVLA, ses capacites actuelles et les liens essentiels.
+
+    [Lire la vue d'ensemble →](/docs/fr/overview/)
+  </Card>
+  <Card title="🧩 Conception modulaire" icon="puzzle">
+    Les principes de conception modulaire derriere StarVLA.
+
+    [Voir la conception →](/docs/fr/design/lego-like/)
+  </Card>
+  <Card title="🤖 Model Zoo" icon="add-document">
+    Modeles publies et checkpoints de fine-tuning.
+
+    [Voir le Model Zoo →](/docs/fr/model-zoo/)
+  </Card>
+  <Card title="📚 FAQ" icon="open-book">
+    Questions frequentes sur les configurations, les backbones et l'entrainement.
+
+    [Lire la FAQ →](/docs/fr/faq/)
+  </Card>
+</CardGrid>

@@ -1,0 +1,166 @@
+---
+title: クイックスタート
+description: StarVLAをゼロからインストールし、セットアップを確認して、次のステップを学びます。
+---
+
+import { Steps, Aside, FileTree } from '@astrojs/starlight/components';
+
+## 背景知識
+
+これらの概念が初めての方のために、簡単に説明します：
+
+- **VLM (Vision-Language Model)**: 画像とテキストの両方を理解するAIモデル。Qwen-VLやGPT-4Vなどが該当します。
+- **VLA (Vision-Language-Action Model)**: VLMにアクション出力を追加したモデルです。「見る」「話す」だけでなく「行動する」ことも可能で、画像と自然言語の指示を入力として受け取り、ロボットのアクション（例: 関節角度 -- ロボットアームの各関節の目標角度値）を出力します。VLMからの構築に加え、VLAは**WM（World Model）**-- 将来の状態を予測する動画生成モデル -- からも構築できます。
+- **StarVLAの役割**: StarVLAは「VLA開発のためのPyTorch」と考えてください。VLMをVLAに変換するための完全なインフラストラクチャを提供します。データの読み込み、トレーニングループ、評価、デプロイパイプラインがすべて再利用可能で、**モデル自体に集中**できます。VLMからでもWMからでも、同じツールキットでトレーニングと評価が行えます。
+
+## 要件
+
+| 項目 | 最小 | 推奨 |
+|------|---------|-------------|
+| GPU | NVIDIA GPU 1基（VRAM 16GB以上） | 8xA800以上（A100 / H200など） |
+| CUDA | 12.0以上 | 12.4 |
+| Python | 3.10 | 3.10 |
+| ディスク | 約20GB（コード + ベースモデル） | 100GB以上（データセット含む） |
+| OS | Linux（Ubuntu 20.04以上） | Ubuntu 22.04 |
+
+:::note
+Linuxのみサポートしています。macOSとWindowsはflash-attnとDeepSpeedの依存関係の制約により、現在サポートされていません。
+:::
+
+## ステップ1: インストール
+
+<Steps>
+1. **リポジトリのクローン**
+
+    ```bash
+    git clone https://github.com/starVLA/starVLA
+    cd starVLA
+    ```
+
+2. **conda環境の作成**
+
+    ```bash
+    conda create -n starVLA python=3.10 -y
+    conda activate starVLA
+    ```
+
+3. **依存関係のインストール**
+
+    ```bash
+    # 基本依存関係のインストール
+    pip install -r requirements.txt
+
+    # FlashAttention2のインストール（高速Transformer推論に必要）
+    # 注意: flash-attnはソースからコンパイルされます。初回インストールには10-20分かかる場合がありますが、これは正常です
+    pip install flash-attn --no-build-isolation
+
+    # starVLAを開発モードでインストール（-e = 編集可能モード:
+    # コード変更が再インストールなしで即座に反映されます）
+    pip install -e .
+    ```
+</Steps>
+
+### トラブルシューティング: flash-attnのインストール
+
+`flash-attn` はCUDAとPyTorchのバージョンに依存します。インストールに失敗した場合は、バージョンの互換性を確認してください：
+
+```bash
+# CUDAバージョンの確認
+nvcc -V
+
+# インストール済みパッケージのバージョン確認
+pip list | grep -E 'torch|transformers|flash-attn'
+```
+
+**検証済みの組み合わせ:**
+- `flash-attn==2.7.4.post1` + CUDA 12.0 / 12.4 + PyTorch 2.6.0
+
+nvccのバージョンがPyTorchのCUDAバージョンと一致しない場合（例: nvcc 11.8だがPyTorchがcu121）、バージョンを揃える必要があります。最も簡単な方法は、nvccバージョンに合わせてPyTorchを再インストールすることです：
+
+```bash
+# 例: nvcc 12.4の場合
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+```
+
+## ステップ2: インストールの確認
+
+すべてが正常に動作することを確認する2つのステップ：
+
+<Steps>
+1. **ベースモデルのダウンロード**
+
+    StarVLAはQwen-VLモデルファミリー上に構築されています。まずベースモデルをダウンロードする必要があります。
+
+    ```bash
+    # Hugging Face CLIのインストール（まだインストールしていない場合）
+    pip install huggingface_hub[cli]
+
+    # Qwen3-VL-4Bのダウンロード（約8GB）
+    huggingface-cli download Qwen/Qwen3-VL-4B-Instruct --local-dir ./playground/Pretrained_models/Qwen3-VL-4B-Instruct
+    ```
+
+2. **Frameworkのスモークテスト**
+
+    フェイクデータでフォワードパスを実行し、モデルが正しくロードされ予測が行われることを確認します：
+
+    ```bash
+    python starVLA/model/framework/QwenGR00T.py
+    ```
+
+    :::note
+    初回実行時はモデルの重みをロードする必要があり、約1-2分かかります。しばらくお待ちください。
+    :::
+
+    **期待される出力:**
+    - モデル全体の構造が出力される
+    - `model.predict_action(fake_data)` がアクション配列を返す（形状: `[batch, action_horizon, action_dim]`）
+    - エラーなし
+
+    :::tip
+    - モデルロード時の `WARNING` メッセージは正常です（通常は互換性に関する通知）。スクリプトがエラーなく完了すれば問題ありません。
+    - 複数のGPUがある場合は、`CUDA_VISIBLE_DEVICES=0` で使用するGPUを選択できます。例: `CUDA_VISIBLE_DEVICES=0 python starVLA/model/framework/QwenGR00T.py`
+    :::
+
+    CUDAのメモリ不足エラーが発生した場合は、より小さなモデル（例: Qwen2.5-VL-3B）を試してください。
+</Steps>
+
+## ディレクトリ構造
+
+インストール後のプロジェクトレイアウトは以下の通りです：
+
+```
+starVLA/                          # プロジェクトルート（gitリポジトリ）
+├── starVLA/                      # コアパッケージ（Python規約: 外側のディレクトリがプロジェクト、内側の同名ディレクトリが実際のパッケージコード）
+│   ├── model/framework/          # モデル定義（QwenOFT.py、QwenGR00T.pyなど）
+│   ├── dataloader/               # データ読み込みパイプライン
+│   ├── training/                 # トレーニングスクリプト
+│   └── config/                   # DeepSpeedとトレーニング設定テンプレート
+├── deployment/                   # デプロイ（ポリシーサーバー）
+├── examples/                     # ベンチマークごとの評価・トレーニング例
+│   ├── LIBERO/
+│   ├── SimplerEnv/
+│   ├── Robocasa_tabletop/
+│   ├── Robotwin/
+│   └── Behavior/
+├── playground/                   # モデルとデータの規約ディレクトリ
+│   ├── Pretrained_models/        # ベースモデル（例: Qwen3-VL-4B-Instruct）
+│   └── Datasets/                 # トレーニングデータセット
+└── results/                      # トレーニング出力（チェックポイント、ログ）
+    └── Checkpoints/
+```
+
+:::tip
+`playground/` と `results/` はgitignoreされています。データとモデルの規約的な保存場所です。設定ファイルでこれらのパスをオーバーライドできます。
+:::
+
+## 次のステップ
+
+インストールの確認が完了したら、目的に応じたパスを選択してください：
+
+| 目的 | 推奨ドキュメント |
+|-----------|-------------------|
+| StarVLAの設計を理解する | [レゴ式設計](/docs/ja/design/lego-like/) |
+| 既存のチェックポイントで評価を実行する | [モデルライブラリ](/docs/ja/model-zoo/)でチェックポイントを確認し、ベンチマークガイドに従ってください（[LIBERO](/docs/ja/benchmarks/libero/)、[SimplerEnv](/docs/ja/benchmarks/simplerenv/)） |
+| 自分のデータでトレーニングする | [独自のLeRobotデータセットを使用](/docs/ja/training/lerobot-dataset/) |
+| VLMデータとの共同トレーニング | [VLMデータとの共同トレーニング](/docs/ja/training/cotrain-vlm/) |
+| よくある質問 | [FAQ](/docs/ja/faq/) |
