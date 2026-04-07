@@ -22,7 +22,7 @@ Hemos verificado que este flujo de trabajo funciona correctamente en GPUs **NVID
 
 ## Resultados Experimentales
 
-| Tarea | GR00T-N1.6 | Qwen3GR00T | Qwen3PI | Qwen3OFT | Qwen3FAST |
+| Tarea | GR00T-N1.6 | StarVLA-GR00T-Qwen3 | StarVLA-π-Qwen3 | StarVLA-OFT-Qwen3 | StarVLA-FAST-Qwen3 |
 |------|------------|------------|---------|----------|-----------|
 | **PnP Bottle To Cabinet Close** | 51.5 | 46.0 | 26.0 | 30.0 | 38.0 |
 | **PnP Can To Drawer Close** | 13.0 | 80.0 | 62.0 | 76.0 | 44.0 |
