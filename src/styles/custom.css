@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 /* =============================================
    Dark mode colors (Starlight default)
    ============================================= */
 :root {
-	--sl-font: 'IBM Plex Sans', 'Noto Sans SC';
+	--sl-font: 'IBM Plex Sans', 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR';
 	--sl-font-mono: 'JetBrains Mono';
 
 	--sl-color-white: #e2ecff;
@@ -335,13 +335,14 @@ header.header {
    Tables — matching starVLA-web style
    ============================================= */
 .sl-markdown-content table:not(:where(.not-content *)) {
-	display: table;
-	width: 100%;
+	display: block;
+	width: max-content;
+	max-width: 100%;
 	border: 1px solid var(--sl-color-gray-5);
 	border-radius: 0.8rem;
 	border-collapse: separate;
 	border-spacing: 0;
-	overflow: hidden;
+	overflow-x: auto;
 }
 
 .sl-markdown-content th:not(:where(.not-content *)) {
