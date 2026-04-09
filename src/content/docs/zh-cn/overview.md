@@ -48,7 +48,8 @@ StarVLA 官方提供了基于 Qwen-VL 的 StarVLA Model Family，包含 4 种不
 
 ### 结果与报告
 
-结果持续更新在 Overleaf 报告（这是一份持续更新的实验报告 PDF，包含最新的基准测试数据和分析）： https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
+- **技术报告**：[*StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing*](https://arxiv.org/abs/2604.05014)（arXiv:2604.05014）。
+- **Overleaf 实时报告**：持续更新的实验报告 PDF，包含最新基准测试数据与分析 —— https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
 
 ## 下一步
 

@@ -19,12 +19,17 @@ description: 이슈 보고, 변경 제안 및 StarVLA 인용 방법을 안내합
 
 ## 인용
 
+StarVLA 기술 보고서는 arXiv에서 확인할 수 있습니다: [arxiv.org/abs/2604.05014](https://arxiv.org/abs/2604.05014).
+
 ```bibtex
-@misc{starvla2025,
-  title  = {StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing},
-  author = {starVLA Community},
-  url = {https://github.com/starVLA/starVLA},
-  year   = {2025}
+@misc{starvla,
+      title={StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing},
+      author={StarVLA Community},
+      year={2026},
+      eprint={2604.05014},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2604.05014},
 }
 ```
 

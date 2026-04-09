@@ -19,12 +19,17 @@ Cooperation Form: https://forms.gle/R4VvgiVveULibTCCA
 
 ## Citation
 
+The StarVLA technical report is available on arXiv: [arxiv.org/abs/2604.05014](https://arxiv.org/abs/2604.05014).
+
 ```bibtex
-@misc{starvla2025,
-  title  = {StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing},
-  author = {starVLA Community},
-  url = {https://github.com/starVLA/starVLA},
-  year   = {2025}
+@misc{starvla,
+      title={StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing},
+      author={StarVLA Community},
+      year={2026},
+      eprint={2604.05014},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2604.05014},
 }
 ```
 

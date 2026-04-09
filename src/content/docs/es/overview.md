@@ -47,7 +47,8 @@ Benchmarks soportados o planificados:
 
 ### Resultados e Informes
 
-Los resultados se rastrean continuamente en un informe en vivo de Overleaf (un PDF de informe experimental actualizado continuamente con los últimos datos y análisis de benchmarks): https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
+- **Informe técnico**: [*StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing*](https://arxiv.org/abs/2604.05014) (arXiv:2604.05014).
+- **Informe en vivo de Overleaf**: un PDF de informe experimental actualizado continuamente con los últimos datos y análisis de benchmarks — https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
 
 ## Próximos Pasos
 

@@ -47,7 +47,8 @@ Benchmarks pris en charge ou prevus :
 
 ### Resultats et rapports
 
-Les resultats sont suivis en continu dans un rapport Overleaf en direct (un rapport PDF experimental mis a jour en continu avec les dernieres donnees de benchmark et analyses) : https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
+- **Rapport technique** : [*StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing*](https://arxiv.org/abs/2604.05014) (arXiv:2604.05014).
+- **Rapport Overleaf en direct** : un rapport PDF experimental mis a jour en continu avec les dernieres donnees de benchmark et analyses — https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
 
 ## Quelle est la suite ?
 

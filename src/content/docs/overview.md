@@ -47,7 +47,8 @@ Supported or planned benchmarks:
 
 ### Results & Reports
 
-Results are continuously tracked in a live Overleaf report (a continuously updated experimental report PDF with the latest benchmark data and analysis): https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
+- **Technical report**: [*StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing*](https://arxiv.org/abs/2604.05014) (arXiv:2604.05014).
+- **Live Overleaf report**: continuously updated experimental report PDF with the latest benchmark data and analysis — https://www.overleaf.com/read/qqtwrnprctkf#d5bdce
 
 ## Where to Go Next
 
